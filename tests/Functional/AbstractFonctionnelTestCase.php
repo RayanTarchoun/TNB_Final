@@ -4,15 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional;
 
-use App\DataFixtures\AppFixtures;
 use App\Entity\Commande;
 use App\Entity\Produit;
 use App\Entity\Utilisateur;
-use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
-use Doctrine\Common\DataFixtures\Loader;
-use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use App\Tests\Support\ChargementFixturesTrait;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -28,10 +24,10 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  */
 abstract class AbstractFonctionnelTestCase extends WebTestCase
 {
+    use ChargementFixturesTrait;
+
     protected KernelBrowser $client;
     protected EntityManagerInterface $entityManager;
-
-    private static bool $schemaInitialise = false;
 
     protected function setUp(): void
     {
@@ -40,21 +36,7 @@ abstract class AbstractFonctionnelTestCase extends WebTestCase
         $conteneur = static::getContainer();
         $this->entityManager = $conteneur->get(EntityManagerInterface::class);
 
-        if (!self::$schemaInitialise) {
-            $outil = new SchemaTool($this->entityManager);
-            $metadonnees = $this->entityManager->getMetadataFactory()->getAllMetadata();
-            $outil->dropSchema($metadonnees);
-            $outil->createSchema($metadonnees);
-
-            self::$schemaInitialise = true;
-        }
-
-        $chargeur = new Loader();
-        $chargeur->addFixture($conteneur->get(AppFixtures::class));
-
-        $executeur = new ORMExecutor($this->entityManager, new ORMPurger($this->entityManager));
-        $executeur->execute($chargeur->getFixtures());
-
+        $this->reinitialiserLaBase($this->entityManager, $conteneur);
         $this->reinitialiserLaLimitationDeConnexion();
     }
 

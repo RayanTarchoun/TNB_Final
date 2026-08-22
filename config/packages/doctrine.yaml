@@ -27,6 +27,15 @@ when@test:
             # "TEST_TOKEN" is typically set by ParaTest
             dbname_suffix: '_test%env(default::TEST_TOKEN)%'
 
+# Panther demarre son propre serveur web dans l'environnement "panther"
+# (et non "test", dont le stockage de session simule est incompatible avec
+# un vrai navigateur). Ce bloc lui fait viser la meme base que les tests
+# fonctionnels, pour qu'il retrouve les fixtures qu'ils ont chargees.
+when@panther:
+    doctrine:
+        dbal:
+            dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+
 when@prod:
     doctrine:
         orm:

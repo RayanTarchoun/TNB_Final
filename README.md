@@ -78,7 +78,7 @@ en cas d'indisponibilité de l'API, l'incident est journalisé et le bloc dispar
 | ORM | Doctrine ORM 3 / DBAL 4 |
 | Base de données | MySQL 8.0 (InnoDB, utf8mb4) |
 | Conteneurisation | Docker + Docker Compose |
-| Tests | PHPUnit 13 (unitaires + fonctionnels) |
+| Tests | PHPUnit 13 (unitaires, fonctionnels) + Panther (navigateur) |
 | Qualité | PHPStan niveau 6, PHP CS Fixer (PSR-12) |
 | CI | GitHub Actions |
 
@@ -287,12 +287,13 @@ honorées.
 
 ## Tests
 
-**155 tests, 485 assertions.**
+**200 tests, 613 assertions.**
 
 ```bash
 composer test              # toute la suite
 composer test:unit         # logique métier isolée, sans base de données
 composer test:fonctionnel  # parcours HTTP complets
+composer test:navigateur   # tests d'interface dans un vrai Chrome
 composer couverture        # rapport HTML dans var/couverture (nécessite Xdebug)
 ```
 
@@ -300,19 +301,43 @@ composer couverture        # rapport HTML dans var/couverture (nécessite Xdebug
 |---|---|
 | `tests/Unit/Entity` | Invariants des entités (décrément de stock, calcul du total, prix figé) |
 | `tests/Unit/Enum` | Workflow de statut : transitions autorisées et interdites |
-| `tests/Unit/Service` | `StockService`, `CommandeService`, `PanierService` (collaborateurs simulés) |
+| `tests/Unit/Service` | `StockService`, `CommandeService`, `PanierService`, `MeteoMarcheService` |
 | `tests/Functional` | Catalogue, panier, commande, sécurité, back-office |
+| `tests/Functional/SecuriteXssTest` | Injection de charges XSS réfléchies et stockées |
+| `tests/Functional/PerformanceCatalogueTest` | Temps de réponse et garde-fou anti N+1 sur 214 produits |
+| `tests/Panther` | Rendu responsive et JavaScript, dans un navigateur réel |
 
 Les tests fonctionnels créent le schéma une fois par processus puis rechargent
 les fixtures avant chaque test : chaque scénario part du même jeu de données,
 sans dépendre de l'ordre d'exécution. Ils utilisent la base **`tnb_test`**, la
 base de travail n'est jamais touchée.
 
-Scénarios notables couverts : blocage d'une commande dont le stock a chuté entre
-l'ajout au panier et la validation, restitution du stock à l'annulation, refus
-d'une transition de statut forgée par requête directe, cloisonnement des
-commandes entre clients (403), et déclenchement effectif de la limitation
-anti-force-brute.
+### Tests navigateur (Panther)
+
+Ils pilotent un vrai Chrome et nécessitent le driver correspondant :
+
+```bash
+composer pilotes   # télécharge drivers/chromedriver (non versionné)
+```
+
+Panther démarre son propre serveur web dans l'environnement `panther`, aiguillé
+vers `tnb_test` par `config/packages/doctrine.yaml`. Ces tests vérifient ce que
+le client HTTP simulé ne peut pas voir : repli du menu sur mobile, ouverture
+effective du hamburger, adaptation de la grille, absence de débordement
+horizontal et absence d'erreur JavaScript.
+
+### Scénarios notables couverts
+
+- Blocage d'une commande dont le stock a chuté entre l'ajout au panier et la validation.
+- Restitution du stock à l'annulation, côté client comme côté administrateur.
+- Refus d'une transition de statut forgée par requête HTTP directe.
+- Cloisonnement des commandes entre clients (403) et du back-office (403).
+- Déclenchement effectif de la limitation anti-force-brute.
+- Échappement de charges XSS injectées via la recherche, le nom d'un produit,
+  le commentaire d'une commande et le prénom du profil.
+- Dégradation propre de l'API météo : erreur serveur, panne réseau et réponse
+  illisible renvoient une liste vide sans casser la page d'accueil.
+- Nombre de requêtes SQL constant que le catalogue contienne 14 ou 214 produits.
 
 ---
 

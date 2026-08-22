@@ -12,7 +12,11 @@ parameters:
         - tests/
 
     symfony:
-        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+        # Conteneur de l'environnement de test : c'est le seul qui expose
+        # les services prives aux tests via static::getContainer(). Pointer
+        # le conteneur "dev" ferait remonter de faux positifs
+        # "Service ... is private" sur le code de test.
+        containerXmlPath: var/cache/test/App_KernelTestDebugContainer.xml
 
     doctrine:
         objectManagerLoader: tests/object-manager.php
