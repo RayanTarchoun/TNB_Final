@@ -1,0 +1,432 @@
+# TNB — Tarchoun Fruits & Légumes
+
+![build](https://img.shields.io/badge/build-passing-brightgreen)
+![PHP](https://img.shields.io/badge/PHP-8.2%2B-777bb4)
+![Symfony](https://img.shields.io/badge/Symfony-6.4%20LTS-000000)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-4479a1)
+![PHPStan](https://img.shields.io/badge/PHPStan-niveau%206-2a2a2a)
+
+Application web de commande en ligne pour **Tarchoun Fruits & Légumes**, entreprise
+familiale de vente de fruits et légumes sur les marchés.
+
+Les clients consultent le catalogue et commandent **à l'avance, en fonction des
+stocks réellement achetés** pour le prochain marché. Le paiement et le retrait
+s'effectuent sur place : le périmètre numérique couvre l'anticipation et
+l'organisation des commandes, pas le paiement en ligne.
+
+Projet fil rouge du titre professionnel **Concepteur Développeur d'Applications**
+(IPSSI, session 2026) — TARCHOUN Rayan.
+
+---
+
+## Sommaire
+
+- [Fonctionnalités](#fonctionnalités)
+- [Socle technique](#socle-technique)
+- [Démarrage rapide (Docker)](#démarrage-rapide-docker)
+- [Installation locale (sans Docker)](#installation-locale-sans-docker)
+- [Comptes de démonstration](#comptes-de-démonstration)
+- [Architecture](#architecture)
+- [Base de données](#base-de-données)
+- [Sécurité](#sécurité)
+- [Tests](#tests)
+- [Qualité de code](#qualité-de-code)
+- [Mise en production](#mise-en-production)
+- [Commandes utiles](#commandes-utiles)
+
+---
+
+## Fonctionnalités
+
+### Côté client
+
+| Fonctionnalité | Détail |
+|---|---|
+| Catalogue public | Recherche plein texte, filtre par catégorie, tri, pagination |
+| Fiche produit | Prix à l'unité de vente, origine, stock restant, suggestions |
+| Panier | Utilisable sans compte, contrôle du stock à chaque ajout |
+| Commande | Validation avec blocage si le stock est insuffisant, e-mail de confirmation |
+| Historique | Suivi du statut, annulation tant que la commande n'est pas récupérée |
+| Profil | Modification des données, changement de mot de passe, suppression du compte (RGPD) |
+
+### Back-office administrateur
+
+| Fonctionnalité | Détail |
+|---|---|
+| Tableau de bord | Commandes du jour, stocks bas, produits actifs, clients, meilleures ventes |
+| Produits | CRUD complet, activation/désactivation, garde-fou sur la suppression |
+| Stocks | Saisie des quantités achetées, réapprovisionnement en un clic, jauge d'écoulement |
+| Commandes | Filtre par statut, bon de préparation imprimable, workflow de statut |
+| Catégories | Création et modification |
+
+### Intégration externe
+
+La page d'accueil affiche la **météo des prochains jours de marché** via l'API
+publique [Open-Meteo](https://open-meteo.com) (sans clé). L'information aide le
+gérant à doser ses achats. Le service est conçu pour ne jamais casser la page :
+en cas d'indisponibilité de l'API, l'incident est journalisé et le bloc disparaît.
+
+---
+
+## Socle technique
+
+| Couche | Technologie |
+|---|---|
+| Langage | PHP 8.2+ |
+| Framework | Symfony 6.4 LTS (full-stack) |
+| Vue | Twig + Bootstrap 5 (servi localement, aucun CDN requis) |
+| ORM | Doctrine ORM 3 / DBAL 4 |
+| Base de données | MySQL 8.0 (InnoDB, utf8mb4) |
+| Conteneurisation | Docker + Docker Compose |
+| Tests | PHPUnit 13 (unitaires + fonctionnels) |
+| Qualité | PHPStan niveau 6, PHP CS Fixer (PSR-12) |
+| CI | GitHub Actions |
+
+---
+
+## Démarrage rapide (Docker)
+
+Prérequis : Docker Desktop (ou Docker Engine + Compose v2).
+
+```bash
+git clone <dépôt> tnb
+cd tnb
+
+# 1. Construction et démarrage des conteneurs
+docker compose up -d --build
+
+# 2. Installation des dépendances PHP
+docker compose exec app composer install
+
+# 3. Création du schéma de base de données
+docker compose exec app php bin/console doctrine:migrations:migrate --no-interaction
+
+# 4. Chargement du jeu de données de démonstration
+docker compose exec app php bin/console doctrine:fixtures:load --no-interaction
+```
+
+| Service | URL |
+|---|---|
+| Application | <http://localhost:8080> |
+| phpMyAdmin | <http://localhost:8081> (`tnb` / `tnb`) |
+| MySQL | `127.0.0.1:3307` depuis l'hôte |
+
+Arrêt : `docker compose down` (les données sont conservées dans un volume nommé).
+Réinitialisation complète : `docker compose down -v`.
+
+---
+
+## Installation locale (sans Docker)
+
+Prérequis : PHP 8.2+ avec `intl`, `pdo_mysql`, `mbstring`, `zip`, `gd` ;
+Composer 2 ; un serveur MySQL 8.0.
+
+```bash
+composer install
+```
+
+Créez ensuite la base et l'utilisateur applicatif :
+
+```sql
+CREATE DATABASE tnb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE tnb_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'tnb'@'localhost' IDENTIFIED BY 'tnb';
+GRANT ALL PRIVILEGES ON `tnb`.* TO 'tnb'@'localhost';
+GRANT ALL PRIVILEGES ON `tnb\_test`.* TO 'tnb'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+Si votre serveur MySQL n'écoute pas sur le port 3306, créez un fichier
+`.env.local` (non versionné) :
+
+```dotenv
+DATABASE_URL="mysql://tnb:tnb@127.0.0.1:3307/tnb?serverVersion=8.0.44&charset=utf8mb4"
+```
+
+> `.env.local` n'est **pas** chargé en environnement de test, afin que la suite
+> reste reproductible. Pour surcharger la base de test sur votre poste, utilisez
+> `.env.test.local`.
+
+Puis initialisez la base et lancez le serveur :
+
+```bash
+composer bdd:init          # migrations + fixtures
+symfony server:start       # ou : php -S 127.0.0.1:8000 -t public public/dev-router.php
+```
+
+---
+
+## Comptes de démonstration
+
+Créés par les fixtures (`composer bdd:init`) :
+
+| Rôle | Identifiant | Mot de passe |
+|---|---|---|
+| Administrateur (le gérant) | `admin@tarchoun.fr` | `Admin1234!` |
+| Client | `client@tarchoun.fr` | `Client1234!` |
+| Client | `marc.dubois@example.fr` | `Client1234!` |
+| Client | `aicha.benali@example.fr` | `Client1234!` |
+
+Le jeu de données comprend 14 produits actifs (un désactivé pour vérifier le
+filtrage) et 4 commandes couvrant tous les statuts.
+
+---
+
+## Architecture
+
+Architecture **MVC en couches**, conforme au chapitre VIII du dossier.
+
+```
+Requête HTTP
+   │
+   ▼
+Contrôleurs (src/Controller)      ── couche présentation
+   │  aucune logique métier : ils orchestrent et répondent
+   ▼
+Services (src/Service)            ── couche métier
+   │  PanierService · StockService · CommandeService
+   │  MeteoMarcheService · NotificationCommandeService
+   ▼
+Repositories (src/Repository)     ── couche accès aux données
+   │  requêtes DQL paramétrées
+   ▼
+Entités Doctrine (src/Entity) ──► MySQL 8.0
+   │
+   ▼
+Vues Twig (templates/)            ── échappement automatique
+```
+
+Points structurants :
+
+- **Toute règle de stock passe par `StockService`.** Le décrément est relu sous
+  verrou pessimiste à l'intérieur de la transaction de commande : deux clients
+  qui valident simultanément ne peuvent pas dépasser le stock réel.
+- **`CommandeService` porte le workflow.** Les transitions autorisées sont
+  définies une seule fois, dans l'énumération `StatutCommande` ; le contrôleur
+  ne les connaît pas.
+- **Le prix est figé à la commande** dans `LigneCommande`, indépendamment des
+  modifications tarifaires ultérieures.
+- **`CommandeVoter`** centralise le cloisonnement : un client ne voit et
+  n'annule que ses propres commandes.
+
+### Cycle de vie d'une commande
+
+```
+EN_ATTENTE ──► PREPAREE ──► RECUPEREE
+     │              │
+     └──────────────┴──────► ANNULEE   (restitue le stock)
+```
+
+`RECUPEREE` et `ANNULEE` sont des états finaux. Toute transition hors de ce
+graphe est rejetée par `TransitionStatutInvalideException`, y compris si elle
+est forgée par une requête HTTP directe.
+
+---
+
+## Base de données
+
+Six tables issues du Modèle Physique de Données (Jalon 3) :
+`utilisateur`, `categorie`, `produit`, `stock`, `commande`, `ligne_commande`.
+
+Choix notables :
+
+- `produit` ↔ `stock` en **1:1** (clé étrangère `UNIQUE`), pour découpler les
+  données statiques du produit des quantités fréquemment mises à jour ;
+- `ligne_commande` est une **entité associative** portant `prix_unitaire` et
+  `sous_total` ;
+- `ON DELETE CASCADE` sur `ligne_commande.commande_id` (composition) ;
+- schéma en **3NF**, colonnes `INT UNSIGNED`, moteur InnoDB, `utf8mb4`.
+
+### Note sur les colonnes ENUM
+
+Le MPD impose des colonnes **`ENUM` natives MySQL** pour `produit.unite_vente`
+et `commande.statut` : le SGBD refuse lui-même toute valeur hors domaine. Elles
+sont déclarées via `columnDefinition` dans les entités.
+
+Conséquence connue : le comparateur de schéma de Doctrine ne sait pas
+introspecter une définition de colonne personnalisée et signale un écart
+permanent sur ces deux colonnes. Les deux `ALTER TABLE` qu'il propose sont des
+no-op (définition identique).
+
+**En pratique**, on vérifie donc la cohérence du mapping avec :
+
+```bash
+php bin/console doctrine:schema:validate --skip-sync
+```
+
+C'est cette commande qui est utilisée dans la pipeline CI. Après un
+`make:migration`, pensez à retirer ces deux `ALTER TABLE` parasites de la
+migration générée.
+
+---
+
+## Sécurité
+
+Mesures mises en œuvre (chapitre IX du dossier) :
+
+| Menace | Mesure |
+|---|---|
+| Injection SQL | Doctrine ORM, requêtes DQL paramétrées, aucune concaténation |
+| XSS | Échappement automatique de Twig |
+| CSRF | Jeton sur tous les formulaires et toutes les actions POST |
+| Force brute | `login_throttling` : 5 tentatives par 15 minutes |
+| Mots de passe | `PasswordHasher` (Argon2id / bcrypt), jamais stockés en clair |
+| Contrôle d'accès | `access_control` + `CommandeVoter` (ROLE_CLIENT / ROLE_ADMIN) |
+| Énumération de comptes | Message de connexion volontairement générique |
+| Comptes désactivés | `UtilisateurChecker` refuse l'authentification |
+| Validation | Symfony Validator sur les entités et les formulaires |
+| En-têtes HTTP | `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` |
+
+**RGPD** — collecte minimale (nom, prénom, e-mail, mot de passe, téléphone
+facultatif), aucune donnée bancaire, droits d'accès, de rectification et
+d'effacement accessibles depuis le profil. La suppression anonymise le compte
+plutôt que de le détruire, afin de préserver la traçabilité des commandes déjà
+honorées.
+
+---
+
+## Tests
+
+**155 tests, 485 assertions.**
+
+```bash
+composer test              # toute la suite
+composer test:unit         # logique métier isolée, sans base de données
+composer test:fonctionnel  # parcours HTTP complets
+composer couverture        # rapport HTML dans var/couverture (nécessite Xdebug)
+```
+
+| Suite | Portée |
+|---|---|
+| `tests/Unit/Entity` | Invariants des entités (décrément de stock, calcul du total, prix figé) |
+| `tests/Unit/Enum` | Workflow de statut : transitions autorisées et interdites |
+| `tests/Unit/Service` | `StockService`, `CommandeService`, `PanierService` (collaborateurs simulés) |
+| `tests/Functional` | Catalogue, panier, commande, sécurité, back-office |
+
+Les tests fonctionnels créent le schéma une fois par processus puis rechargent
+les fixtures avant chaque test : chaque scénario part du même jeu de données,
+sans dépendre de l'ordre d'exécution. Ils utilisent la base **`tnb_test`**, la
+base de travail n'est jamais touchée.
+
+Scénarios notables couverts : blocage d'une commande dont le stock a chuté entre
+l'ajout au panier et la validation, restitution du stock à l'annulation, refus
+d'une transition de statut forgée par requête directe, cloisonnement des
+commandes entre clients (403), et déclenchement effectif de la limitation
+anti-force-brute.
+
+---
+
+## Qualité de code
+
+```bash
+composer qualite      # rejoue localement les contrôles de la CI
+composer style        # applique PSR-12
+composer stan         # analyse statique PHPStan niveau 6
+```
+
+La pipeline **GitHub Actions** (`.github/workflows/ci.yml`) s'exécute à chaque
+push sur `main`/`develop` et sur chaque Pull Request :
+
+1. **Qualité** — PHP CS Fixer (PSR-12) puis PHPStan niveau 6.
+2. **Tests** — service MySQL 8.0, validation du mapping Doctrine, PHPUnit.
+3. **Image Docker** — construction de la cible `prod` (n'est lancée que si les
+   deux premiers travaux réussissent).
+
+---
+
+## Mise en production
+
+```bash
+# 1. Récupérer le code
+git clone <dépôt> tnb && cd tnb
+
+# 2. Renseigner les secrets (fichier non versionné)
+cat > .env.prod <<'EOF'
+APP_SECRET=<chaîne aléatoire de 32 caractères>
+MYSQL_ROOT_PASSWORD=<mot de passe root>
+MYSQL_PASSWORD=<mot de passe applicatif>
+DEFAULT_URI=https://commandes.tarchoun.fr
+MAILER_DSN=smtp://utilisateur:motdepasse@smtp.exemple.fr:587
+EOF
+
+# 3. Construire et lancer
+docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+
+# 4. Créer le schéma
+docker compose -f docker-compose.prod.yml exec app \
+    php bin/console doctrine:migrations:migrate --no-interaction
+
+# 5. (facultatif, première installation) créer le compte administrateur
+docker compose -f docker-compose.prod.yml exec app \
+    php bin/console doctrine:fixtures:load --no-interaction
+```
+
+L'image de production embarque le code et les dépendances (`composer install
+--no-dev --classmap-authoritative`), désactive le mode debug et verrouille
+OPcache avec préchargement. Aucun secret n'est écrit dans l'image : ils sont
+injectés par variables d'environnement au démarrage.
+
+**Stratégie retenue** — un déploiement manuel pendant une courte fenêtre de
+maintenance suffit dans le contexte de TNB, une interruption de service n'étant
+pas critique. Les stratégies bleu/vert et rolling update restent envisageables
+si le trafic le justifie.
+
+**À faire avant la vraie mise en ligne :** placer un terminaison TLS (Traefik,
+Caddy ou reverse proxy Nginx) devant le conteneur applicatif — le service
+n'expose aujourd'hui que HTTP en interne — et retirer l'exposition du port
+MySQL.
+
+---
+
+## Commandes utiles
+
+```bash
+# Base de données
+php bin/console doctrine:migrations:migrate      # appliquer les migrations
+php bin/console doctrine:migrations:diff         # générer une migration
+php bin/console doctrine:fixtures:load           # recharger les données de démo
+php bin/console doctrine:schema:validate --skip-sync
+
+# Diagnostic
+php bin/console debug:router                     # lister les routes
+php bin/console debug:container                  # lister les services
+php bin/console lint:twig templates              # valider les gabarits
+php bin/console cache:clear
+
+# Docker
+docker compose logs -f app                       # suivre les logs
+docker compose exec app bash                     # ouvrir un shell
+docker compose down -v                           # tout réinitialiser
+```
+
+---
+
+## Structure du projet
+
+```
+config/          Configuration Symfony (sécurité, Doctrine, services…)
+docker/          Dockerfile, vhost Apache, réglages PHP dev et prod
+migrations/      Migrations Doctrine versionnées
+public/          Contrôleur frontal, CSS de la charte, Bootstrap 5 local
+src/
+  Controller/    Points d'entrée HTTP (dont Admin/ pour le back-office)
+  DataFixtures/  Jeu de données de démonstration
+  Entity/        Les 6 entités du MPD
+  Enum/          StatutCommande, UniteVente
+  Exception/     Exceptions métier
+  Form/          Types de formulaires
+  Model/         Objets de transfert non persistés (LignePanier, PrevisionMeteo)
+  Repository/    Accès aux données
+  Security/      UserChecker et Voter
+  Service/       Logique métier
+  Twig/          Extension d'affichage
+templates/       Gabarits Twig (dont admin/, email/, partials/)
+tests/           Unit/ et Functional/
+```
+
+---
+
+## Auteur
+
+**TARCHOUN Rayan** — Concepteur Développeur d'Applications, IPSSI, session 2026.
+Projet réalisé pour l'entreprise familiale Tarchoun Fruits & Légumes.
