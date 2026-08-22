@@ -1,0 +1,104 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tarchoun Fruits &amp; Legumes — Commandez avant le marche{% endblock %}
+
+{% block corps %}
+    <section class="tnb-hero mb-5">
+        <h1>Commandez vos fruits et legumes<br>avant le marche !</h1>
+        <p class="mb-4">Produits frais, stocks en temps reel, recuperation sur le marche.</p>
+        <a class="btn btn-tnb btn-lg" href="{{ path('app_produit_index') }}">Voir le catalogue</a>
+    </section>
+
+    <section class="mb-5">
+        <h2 class="tnb-section-titre">Nos produits du moment</h2>
+
+        {% if produits is empty %}
+            <div class="tnb-vide">
+                <span class="tnb-vide-pictogramme" aria-hidden="true">🧺</span>
+                <p class="mb-0">Aucun produit en stock pour le moment. Revenez avant le prochain marche !</p>
+            </div>
+        {% else %}
+            <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4">
+                {% for produit in produits %}
+                    <div class="col">
+                        {{ include('partials/_produit_carte.html.twig', {produit: produit}) }}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="text-center mt-4">
+                <a class="btn btn-tnb-secondaire" href="{{ path('app_produit_index') }}">
+                    Voir tout le catalogue
+                </a>
+            </div>
+        {% endif %}
+    </section>
+
+    <section>
+        <h2 class="tnb-section-titre">A propos &amp; infos pratiques</h2>
+
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="tnb-bloc h-100">
+                    <h3 class="h6 mb-2" style="color: var(--tnb-vert-action);">L'entreprise Tarchoun</h3>
+                    <p class="mb-0 small">
+                        Entreprise familiale specialisee dans la vente de fruits et legumes frais
+                        sur les marches. Nous achetons chaque semaine ce que nous vendons :
+                        commander a l'avance nous aide a ajuster nos quantites et vous garantit
+                        de trouver vos produits.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="tnb-bloc tnb-bloc-accent h-100">
+                    <h3 class="h6 mb-2" style="color: var(--tnb-orange-texte);">Infos pratiques</h3>
+                    <ul class="list-unstyled small mb-0">
+                        <li><strong>Jours de marche :</strong> {{ marche_jours }}</li>
+                        <li><strong>Horaires :</strong> {{ marche_horaires }}</li>
+                        <li><strong>Lieu :</strong> {{ marche_lieu }}</li>
+                        <li><strong>Tel :</strong> {{ marche_telephone }}</li>
+                        <li><strong>Email :</strong> {{ mail_contact }}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="tnb-bloc h-100">
+                    <h3 class="h6 mb-2">Comment ca marche ?</h3>
+                    <ol class="tnb-etapes small mb-0">
+                        <li>Choisissez vos produits dans le catalogue.</li>
+                        <li>Validez votre commande en ligne.</li>
+                        <li>Recuperez et payez sur le marche.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        {# Bloc alimente par une API externe : masque si elle est injoignable. #}
+        {% if previsions is not empty %}
+            <div class="tnb-bloc mt-4">
+                <h3 class="h6 mb-3">Meteo des prochains jours au marche</h3>
+                <div class="row row-cols-1 row-cols-sm-3 g-3">
+                    {% for prevision in previsions %}
+                        <div class="col">
+                            <div class="d-flex align-items-center gap-3">
+                                <span style="font-size: 2rem; line-height: 1;" aria-hidden="true">{{ prevision.pictogramme }}</span>
+                                <div>
+                                    <div class="fw-semibold text-capitalize">{{ prevision.date|format_date('medium', locale='fr') }}</div>
+                                    <div class="small" style="color: var(--tnb-gris-texte);">
+                                        {{ prevision.libelle }} —
+                                        {{ prevision.temperatureMinArrondie }}° / {{ prevision.temperatureMaxArrondie }}°
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <p class="small mb-0 mt-3" style="color: var(--tnb-gris-texte);">
+                    Source : Open-Meteo. Previsions indicatives pour {{ marche_lieu }}.
+                </p>
+            </div>
+        {% endif %}
+    </section>
+{% endblock %}

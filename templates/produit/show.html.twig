@@ -1,0 +1,114 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ produit.nom }} — Tarchoun Fruits &amp; Legumes{% endblock %}
+{% block description %}{{ produit.description|default(produit.nom)|striptags|slice(0, 150) }}{% endblock %}
+
+{% block corps %}
+    {% set estLegume = produit.categorie and produit.categorie.classeBadge == 'badge-legume' %}
+    {% set disponible = produit.estDisponible %}
+    {% set restant = produit.quantiteDisponible %}
+    {% set pas = produit.uniteVente.pasDeQuantite %}
+
+    <nav aria-label="Fil d'Ariane" class="mb-3">
+        <ol class="breadcrumb small mb-0">
+            <li class="breadcrumb-item"><a href="{{ path('app_accueil') }}">Accueil</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_produit_index') }}">Catalogue</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ produit.nom }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-5">
+            <div class="tnb-carte">
+                <div class="tnb-vignette {{ estLegume ? 'tnb-vignette-legume' }}">
+                    {% if produit.imageUrl %}
+                        <img src="{{ produit.imageUrl }}" alt="{{ produit.nom }}">
+                    {% else %}
+                        <span class="tnb-vignette-lettre" aria-hidden="true">{{ produit.nom|slice(0, 1)|upper }}</span>
+                    {% endif %}
+                    {% if produit.categorie %}
+                        <span class="tnb-badge tnb-badge-categorie {{ produit.categorie.classeBadge }}">
+                            {{ produit.categorie.nom }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <h1 class="mb-2">{{ produit.nom }}</h1>
+
+            <p class="mb-3">
+                <span class="tnb-prix" style="font-size: 1.8rem;">{{ produit.prix|prix }}</span>
+                <span class="tnb-prix-unite">{{ produit.uniteVente.suffixePrix }}</span>
+            </p>
+
+            <p class="tnb-stock mb-3">
+                {% if not produit.disponible %}
+                    <span class="tnb-stock-epuise">Produit momentanement retire de la vente</span>
+                {% elseif restant <= 0 %}
+                    <span class="tnb-stock-epuise">Epuise pour ce marche</span>
+                {% elseif restant <= 3 %}
+                    <span class="tnb-stock-bas">Plus que {{ restant|quantite }} {{ produit.uniteVente.abreviation }} !</span>
+                {% else %}
+                    <span class="tnb-stock-ok">{{ restant|quantite }} {{ produit.uniteVente.abreviation }} disponibles</span>
+                {% endif %}
+            </p>
+
+            {% if produit.description %}
+                <p>{{ produit.description }}</p>
+            {% endif %}
+
+            <dl class="row small mb-4">
+                {% if produit.origine %}
+                    <dt class="col-sm-4">Origine</dt>
+                    <dd class="col-sm-8">{{ produit.origine }}</dd>
+                {% endif %}
+                <dt class="col-sm-4">Unite de vente</dt>
+                <dd class="col-sm-8">{{ produit.uniteVente.libelle }}</dd>
+                <dt class="col-sm-4">Categorie</dt>
+                <dd class="col-sm-8">{{ produit.categorie.nom }}</dd>
+                {% if produit.stock and produit.stock.dateMarche %}
+                    <dt class="col-sm-4">Jour de marche</dt>
+                    <dd class="col-sm-8">{{ produit.stock.dateMarche|date('d/m/Y') }}</dd>
+                {% endif %}
+            </dl>
+
+            <form method="post" action="{{ path('app_panier_ajouter', {id: produit.id}) }}"
+                  class="tnb-bloc d-flex flex-wrap align-items-end gap-3">
+                <input type="hidden" name="_token" value="{{ csrf_token('panier_ajouter' ~ produit.id) }}">
+
+                <div>
+                    <label class="form-label" for="quantite">
+                        Quantite ({{ produit.uniteVente.abreviation }})
+                    </label>
+                    <input type="number" class="form-control" id="quantite" name="quantite"
+                           value="{{ pas }}" min="{{ pas }}" step="{{ pas }}"
+                           max="{{ restant > 0 ? restant : pas }}"
+                           style="width: 8rem;" {{ disponible ? '' : 'disabled' }}>
+                </div>
+
+                <button type="submit" class="btn btn-tnb flex-grow-1" {{ disponible ? '' : 'disabled' }}>
+                    {{ disponible ? '+ Ajouter au panier' : 'Indisponible' }}
+                </button>
+            </form>
+
+            <p class="small mt-3 mb-0" style="color: var(--tnb-gris-texte);">
+                Paiement et retrait sur le marche — {{ marche_lieu }}, {{ marche_jours }}, {{ marche_horaires }}.
+            </p>
+        </div>
+    </div>
+
+    {% if suggestions is not empty %}
+        <section>
+            <h2 class="tnb-section-titre">Dans la meme categorie</h2>
+            <div class="row row-cols-2 row-cols-md-3 g-4">
+                {% for suggestion in suggestions %}
+                    <div class="col">
+                        {{ include('partials/_produit_carte.html.twig', {produit: suggestion}) }}
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+{% endblock %}
