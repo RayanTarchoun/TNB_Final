@@ -100,6 +100,11 @@ class ProduitRepository extends ServiceEntityRepository
             ->andWhere('p.disponible = true')
             ->andWhere('s.quantiteDisponible > 0')
             ->orderBy('p.dateCreation', 'DESC')
+            // Depart, plusieurs produits partagent la meme seconde de creation
+            // (chargement des fixtures, import en lot) : sans ce second critere
+            // l'ordre serait laisse au SGBD et la page d'accueil changerait
+            // d'un affichage a l'autre.
+            ->addOrderBy('p.id', 'DESC')
             ->setMaxResults($limite)
             ->getQuery()
             ->getResult();
