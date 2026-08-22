@@ -168,8 +168,15 @@ class InterfaceNavigateurTest extends PantherTestCase
     }
 
     /**
-     * Le navigateur ne doit remonter aucune erreur JavaScript : une
-     * exception non capturee casserait le menu ou les alertes.
+     * Le navigateur ne doit remonter aucune erreur JavaScript issue de
+     * l'application : une exception non capturee casserait le menu ou les
+     * alertes.
+     *
+     * Les entrees provenant d'un domaine tiers sont ecartees : la page
+     * charge ses polices depuis Google Fonts, et une coupure reseau sur ce
+     * service — frequente sur un runner d'integration continue — produirait
+     * une erreur SEVERE sans rapport avec le code teste. Les polices ont de
+     * toute facon une pile de repli.
      */
     public function testAucuneErreurJavascriptSurLesPagesPrincipales(): void
     {
@@ -182,13 +189,21 @@ class InterfaceNavigateurTest extends PantherTestCase
 
         $erreurs = array_filter(
             $client->getWebDriver()->manage()->getLog('browser'),
-            static fn (array $entree): bool => 'SEVERE' === ($entree['level'] ?? '')
+            static function (array $entree): bool {
+                if ('SEVERE' !== ($entree['level'] ?? '')) {
+                    return false;
+                }
+
+                $message = (string) ($entree['message'] ?? '');
+
+                return !preg_match('#https?://(?!localhost|127\.0\.0\.1)#i', $message);
+            }
         );
 
         self::assertSame(
             [],
-            array_map(static fn (array $e): string => (string) $e['message'], $erreurs),
-            'Le navigateur a remonte des erreurs JavaScript.'
+            array_values(array_map(static fn (array $e): string => (string) $e['message'], $erreurs)),
+            'Le navigateur a remonte des erreurs JavaScript provenant de l\'application.'
         );
     }
 }
