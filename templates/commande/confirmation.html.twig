@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Commande {{ commande.reference }} confirmee{% endblock %}
+
+{% block corps %}
+    <div class="tnb-bloc text-center mb-4" style="border-left: 4px solid var(--tnb-vert-action);">
+        <span style="font-size: 3rem; display: block;" aria-hidden="true">✅</span>
+        <h1 class="h3 mb-2">Merci, votre commande est enregistree !</h1>
+        <p class="mb-1">
+            Reference : <strong>{{ commande.reference }}</strong>
+        </p>
+        <p class="mb-0" style="color: var(--tnb-gris-texte);">
+            Un email de confirmation vient de vous etre envoye a {{ commande.utilisateur.email }}.
+        </p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="tnb-tableau tnb-tableau-scroll">
+                <table class="table align-middle mb-0">
+                    <caption class="visually-hidden">Detail de la commande {{ commande.reference }}</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Produit</th>
+                            <th scope="col">Quantite</th>
+                            <th scope="col" class="text-end">Sous-total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ligne in commande.lignes %}
+                            <tr>
+                                <th scope="row" class="fw-normal">{{ ligne.produit.nom }}</th>
+                                <td class="text-nowrap">{{ ligne.quantiteLibelle }}</td>
+                                <td class="text-end fw-semibold text-nowrap">{{ ligne.sousTotal|prix }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th scope="row" colspan="2" class="text-end">Total</th>
+                            <td class="text-end"><span class="tnb-total">{{ commande.montantTotal|prix }}</span></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="tnb-bloc tnb-bloc-accent h-100">
+                <h2 class="h5 mb-3">Et maintenant ?</h2>
+                <ol class="tnb-etapes mb-4">
+                    <li>Nous preparons votre commande avant le marche.</li>
+                    <li>Vous la recuperez a notre stand, {{ marche_lieu }}.</li>
+                    <li>Vous reglez sur place, en especes ou par carte.</li>
+                </ol>
+
+                <p class="small mb-3">
+                    <strong>Jours de marche :</strong> {{ marche_jours }}<br>
+                    <strong>Horaires :</strong> {{ marche_horaires }}
+                </p>
+
+                <a class="btn btn-tnb w-100 mb-2"
+                   href="{{ path('app_commande_show', {reference: commande.reference}) }}">
+                    Suivre ma commande
+                </a>
+                <a class="btn btn-tnb-secondaire w-100" href="{{ path('app_produit_index') }}">
+                    Retour au catalogue
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

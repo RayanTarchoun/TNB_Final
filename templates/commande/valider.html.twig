@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Valider ma commande — Tarchoun Fruits &amp; Legumes{% endblock %}
+
+{% block corps %}
+    <h1 class="mb-4">Valider ma commande</h1>
+
+    {% if indisponibles is not empty %}
+        <div class="alert alert-danger" role="alert">
+            <strong>Impossible de valider en l'etat.</strong>
+            Le stock est insuffisant pour : {{ indisponibles|map(l => l.produit.nom)|join(', ') }}.
+            <a href="{{ path('app_panier') }}" class="alert-link">Ajustez votre panier</a> avant de continuer.
+        </div>
+    {% endif %}
+
+    {{ form_start(formulaire) }}
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="tnb-tableau tnb-tableau-scroll mb-4">
+                <table class="table align-middle mb-0">
+                    <caption class="visually-hidden">Recapitulatif de la commande</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Produit</th>
+                            <th scope="col">Prix unitaire</th>
+                            <th scope="col">Quantite</th>
+                            <th scope="col" class="text-end">Sous-total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ligne in lignes %}
+                            <tr>
+                                <th scope="row" class="fw-normal">{{ ligne.produit.nom }}</th>
+                                <td class="text-nowrap">{{ ligne.produit.prix|prix }}</td>
+                                <td class="text-nowrap">{{ ligne.quantiteLibelle }}</td>
+                                <td class="text-end fw-semibold text-nowrap">{{ ligne.sousTotal|prix }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th scope="row" colspan="3" class="text-end">Total a regler sur le marche</th>
+                            <td class="text-end"><span class="tnb-total">{{ total|prix }}</span></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="tnb-bloc">
+                {{ form_row(formulaire.commentaire) }}
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="tnb-bloc tnb-action-collante">
+                <h2 class="h5 mb-3">Retrait sur le marche</h2>
+
+                <ul class="list-unstyled small mb-3">
+                    <li><strong>Lieu :</strong> {{ marche_lieu }}</li>
+                    <li><strong>Jours :</strong> {{ marche_jours }}</li>
+                    <li><strong>Horaires :</strong> {{ marche_horaires }}</li>
+                </ul>
+
+                <div class="alert alert-info small mb-3" role="status">
+                    Votre commande sera preparee pour le prochain marche.
+                    Le paiement se fait sur place, aucun reglement en ligne n'est demande.
+                </div>
+
+                <div class="d-flex justify-content-between align-items-baseline mb-3">
+                    <span class="fw-semibold">Total</span>
+                    <span class="tnb-total">{{ total|prix }}</span>
+                </div>
+
+                <button type="submit" class="btn btn-tnb btn-lg w-100"
+                        {{ indisponibles is not empty ? 'disabled' : '' }}>
+                    Confirmer ma commande
+                </button>
+
+                <a href="{{ path('app_panier') }}" class="btn btn-link w-100 mt-2 small">
+                    Revenir au panier
+                </a>
+            </div>
+        </div>
+    </div>
+    {{ form_end(formulaire) }}
+{% endblock %}
