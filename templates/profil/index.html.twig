@@ -1,0 +1,91 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon profil — Tarchoun Fruits &amp; Legumes{% endblock %}
+
+{% block corps %}
+    <h1 class="mb-4">Mon profil</h1>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="tnb-bloc mb-4">
+                <h2 class="h5 mb-3">Mes informations</h2>
+                {{ form_start(formulaireProfil, {attr: {novalidate: 'novalidate'}}) }}
+                    <div class="row g-3">
+                        <div class="col-sm-6">{{ form_row(formulaireProfil.prenom) }}</div>
+                        <div class="col-sm-6">{{ form_row(formulaireProfil.nom) }}</div>
+                    </div>
+                    {{ form_row(formulaireProfil.email) }}
+                    {{ form_row(formulaireProfil.telephone) }}
+                    {{ form_row(formulaireProfil.adresse) }}
+                    <button type="submit" class="btn btn-tnb mt-2">Enregistrer</button>
+                {{ form_end(formulaireProfil) }}
+            </div>
+
+            <div class="tnb-bloc">
+                <h2 class="h5 mb-3">Changer mon mot de passe</h2>
+                {{ form_start(formulaireMotDePasse, {attr: {novalidate: 'novalidate'}}) }}
+                    {{ form_row(formulaireMotDePasse.motDePasseActuel) }}
+                    <div class="row g-3">
+                        <div class="col-sm-6">{{ form_row(formulaireMotDePasse.nouveauMotDePasse.first) }}</div>
+                        <div class="col-sm-6">{{ form_row(formulaireMotDePasse.nouveauMotDePasse.second) }}</div>
+                    </div>
+                    <button type="submit" class="btn btn-tnb mt-2">Modifier le mot de passe</button>
+                {{ form_end(formulaireMotDePasse) }}
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="tnb-bloc mb-4">
+                <h2 class="h6 mb-3">Mon compte</h2>
+                <dl class="row small mb-0">
+                    <dt class="col-6">Inscrit depuis le</dt>
+                    <dd class="col-6">{{ utilisateur.dateInscription|date('d/m/Y') }}</dd>
+
+                    <dt class="col-6">Commandes passees</dt>
+                    <dd class="col-6">{{ commandes|length }}</dd>
+
+                    <dt class="col-6">Statut</dt>
+                    <dd class="col-6 mb-0">
+                        <span class="tnb-badge badge-legume">Compte actif</span>
+                    </dd>
+                </dl>
+
+                {% if commandes is not empty %}
+                    <hr>
+                    <h3 class="h6 mb-2">Dernieres commandes</h3>
+                    <ul class="list-unstyled small mb-0">
+                        {% for commande in commandes|slice(0, 3) %}
+                            <li class="d-flex justify-content-between align-items-center py-1">
+                                <a href="{{ path('app_commande_show', {reference: commande.reference}) }}">
+                                    {{ commande.reference }}
+                                </a>
+                                <span class="tnb-badge {{ commande.statut.classeBadge }}">
+                                    {{ commande.statut.libelle }}
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <a class="btn btn-tnb-secondaire btn-sm w-100 mt-3"
+                       href="{{ path('app_commande_historique') }}">Voir toutes mes commandes</a>
+                {% endif %}
+            </div>
+
+            {# Droit a l'effacement (RGPD, CDCF 3.6.2) #}
+            <div class="tnb-bloc" style="border-left: 4px solid var(--tnb-rouge-action);">
+                <h2 class="h6 mb-2">Supprimer mon compte</h2>
+                <p class="small" style="color: var(--tnb-gris-texte);">
+                    Vos donnees personnelles seront anonymisees et votre compte desactive.
+                    Cette action est definitive et vous deconnecte immediatement.
+                </p>
+                <form method="post" action="{{ path('app_profil_supprimer') }}"
+                      onsubmit="return confirm('Cette action est definitive. Confirmez-vous la suppression de votre compte ?');">
+                    <input type="hidden" name="_token"
+                           value="{{ csrf_token('supprimer_compte' ~ utilisateur.id) }}">
+                    <button type="submit" class="btn btn-outline-danger w-100">
+                        Supprimer definitivement mon compte
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

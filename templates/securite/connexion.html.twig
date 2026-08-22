@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion — Tarchoun Fruits &amp; Legumes{% endblock %}
+
+{% block corps %}
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-5">
+            <div class="tnb-bloc">
+                <h1 class="h3 mb-1">Connexion</h1>
+                <p class="small mb-4" style="color: var(--tnb-gris-texte);">
+                    Retrouvez votre panier et vos commandes.
+                </p>
+
+                {% if erreur %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ erreur.messageKey|trans(erreur.messageData, 'security') }}
+                    </div>
+                {% endif %}
+
+                <form method="post" novalidate>
+                    <div class="mb-3">
+                        <label class="form-label" for="email">Adresse email</label>
+                        <input type="email" class="form-control" id="email" name="email"
+                               value="{{ dernierEmail }}" autocomplete="email" required autofocus>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="motDePasse">Mot de passe</label>
+                        <input type="password" class="form-control" id="motDePasse" name="motDePasse"
+                               autocomplete="current-password" required>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="souvenir" name="_remember_me" value="1">
+                        <label class="form-check-label" for="souvenir">Se souvenir de moi</label>
+                    </div>
+
+                    {# Jeton anti-CSRF du pare-feu (chap. IX.2) #}
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                    <button type="submit" class="btn btn-tnb w-100">Se connecter</button>
+                </form>
+
+                <hr class="my-4">
+
+                <p class="text-center mb-0 small">
+                    Pas encore de compte ?
+                    <a href="{{ path('app_inscription') }}">Creer un compte client</a>
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
