@@ -14,6 +14,9 @@
 # Ce fichier est cree a la main sur le serveur, il ne doit jamais etre versionne.
 /.env.prod
 /.env.prod.*
+# Le modele, lui, ne contient aucune valeur : il documente les variables
+# attendues et doit rester dans le depot.
+!/.env.prod.dist
 ###< tnb/secrets ###
 
 ###> friendsofphp/php-cs-fixer ###

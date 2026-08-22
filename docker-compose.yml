@@ -35,6 +35,12 @@ services:
             DATABASE_URL: 'mysql://tnb:tnb@database:3306/tnb?serverVersion=8.0.36&charset=utf8mb4'
             DEFAULT_URI: 'http://localhost:8080'
             MAILER_DSN: 'null://null'
+        healthcheck:
+            test: ['CMD', 'curl', '-fsS', 'http://localhost/sante']
+            interval: 30s
+            timeout: 5s
+            retries: 3
+            start_period: 40s
         networks:
             - tnb
 

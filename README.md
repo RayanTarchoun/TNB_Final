@@ -172,6 +172,43 @@ filtrage) et 4 commandes couvrant tous les statuts.
 
 ---
 
+## Guide utilisateur
+
+### Parcours client
+
+1. **Parcourir le catalogue** — depuis l'accueil, « Voir le catalogue ». Filtrez
+   par catégorie, triez par prix, ou recherchez un produit. Chaque carte affiche
+   le stock restant : « Plus que 2 kg ! » signale une fin de série.
+2. **Ajouter au panier** — le bouton ajoute la quantité par défaut (500 g au
+   kilo, 1 pour les pièces). Depuis la fiche produit, vous choisissez la
+   quantité exacte. Le panier fonctionne sans compte.
+3. **Ajuster le panier** — modifiez les quantités, retirez une ligne. Si le
+   stock a baissé entre-temps, un bandeau propose d'aligner le panier en un clic.
+4. **Valider** — la connexion est demandée à cette étape seulement. Vous pouvez
+   laisser un mot au gérant, puis confirmer. Un e-mail récapitulatif est envoyé.
+5. **Récupérer** — présentez votre référence (`TNB-20260822-A3F9`) au stand.
+   **Le règlement se fait sur place**, aucun paiement en ligne n'est demandé.
+6. **Suivre ou annuler** — « Mes commandes » affiche le statut. Une commande
+   peut être annulée tant qu'elle n'a pas été récupérée ; les produits
+   retournent aussitôt en vente.
+
+### Parcours administrateur
+
+Connectez-vous avec le compte gérant, puis « Back-office ».
+
+| Écran | Usage quotidien |
+|---|---|
+| **Tableau de bord** | Commandes du jour, alertes de stock bas, meilleures ventes pour ajuster les achats |
+| **Stocks** | Le matin du marché : saisissez la quantité achetée et cliquez « Réappro. ». Le stock restant repart à neuf |
+| **Commandes** | Filtrez sur « En attente », ouvrez une commande, imprimez le bon de préparation, puis passez le statut à « Préparée » |
+| **Produits** | Créez, modifiez, activez ou désactivez. Un produit déjà commandé est désactivé plutôt que supprimé, pour préserver l'historique |
+| **Catégories** | Rarement utilisé : Fruit et Légume suffisent au démarrage |
+
+Le statut suit un ordre strict : **En attente → Préparée → Récupérée**. Vous ne
+pouvez pas sauter d'étape ; l'annulation, elle, remet les produits en stock.
+
+---
+
 ## Architecture
 
 Architecture **MVC en couches**, conforme au chapitre VIII du dossier.
@@ -363,28 +400,53 @@ push sur `main`/`develop` et sur chaque Pull Request :
 
 ```bash
 # 1. Récupérer le code
-git clone <dépôt> tnb && cd tnb
+git clone https://github.com/RayanTarchoun/TNB_Final.git tnb && cd tnb
 
 # 2. Renseigner les secrets (fichier non versionné)
-cat > .env.prod <<'EOF'
-APP_SECRET=<chaîne aléatoire de 32 caractères>
-MYSQL_ROOT_PASSWORD=<mot de passe root>
-MYSQL_PASSWORD=<mot de passe applicatif>
-DEFAULT_URI=https://commandes.tarchoun.fr
-MAILER_DSN=smtp://utilisateur:motdepasse@smtp.exemple.fr:587
-EOF
+cp .env.prod.dist .env.prod
+#   puis compléter APP_SECRET, MYSQL_ROOT_PASSWORD, MYSQL_PASSWORD,
+#   DEFAULT_URI et MAILER_DSN.
+#   APP_SECRET : php -r "echo bin2hex(random_bytes(16)), PHP_EOL;"
 
 # 3. Construire et lancer
 docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 
-# 4. Créer le schéma
+# 4. Créer le schéma de base de données
 docker compose -f docker-compose.prod.yml exec app \
     php bin/console doctrine:migrations:migrate --no-interaction
 
-# 5. (facultatif, première installation) créer le compte administrateur
+# 5. Créer le compte administrateur (première installation uniquement)
 docker compose -f docker-compose.prod.yml exec app \
-    php bin/console doctrine:fixtures:load --no-interaction
+    php bin/console app:creer-administrateur gerant@tarchoun.fr Hamadi Tarchoun
+
+# 6. Vérifier que l'application répond
+curl -fsS https://commandes.tarchoun.fr/sante
+#   -> {"statut":"ok","base_de_donnees":"ok"}
 ```
+
+> **Ne chargez jamais les fixtures en production.** `doctrine:fixtures:load`
+> **purge la base** avant d'insérer le jeu de démonstration. La commande
+> `app:creer-administrateur` est faite pour ça : elle crée le compte du gérant,
+> ou promeut un compte existant, sans toucher au reste des données.
+
+### Publication de l'image
+
+Pousser un tag `v*` déclenche la publication de l'image sur Docker Hub :
+
+```bash
+git tag -a v1.2 -m "Version 1.2" && git push origin v1.2
+```
+
+La publication est ignorée tant que les secrets `DOCKERHUB_USERNAME` et
+`DOCKERHUB_TOKEN` ne sont pas renseignés dans les paramètres du dépôt — le
+tag n'échoue pas pour autant.
+
+### Supervision
+
+`GET /sante` renvoie l'état de l'application et la joignabilité de la base.
+Docker s'en sert comme `HEALTHCHECK` : un conteneur dont la base est
+injoignable est marqué `unhealthy`. La réponse ne divulgue ni version ni
+détail d'infrastructure.
 
 L'image de production embarque le code et les dépendances (`composer install
 --no-dev --classmap-authoritative`), désactive le mode debug et verrouille
