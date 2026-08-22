@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Politique de confidentialite — Tarchoun Fruits &amp; Legumes{% endblock %}
+
+{% block corps %}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4">Politique de confidentialite</h1>
+
+            <div class="tnb-bloc">
+                <p class="small" style="color: var(--tnb-gris-texte);">
+                    Conformement au Reglement general sur la protection des donnees (RGPD),
+                    cette page decrit les donnees que nous collectons, pourquoi nous les
+                    collectons et les droits dont vous disposez.
+                </p>
+
+                <h2 class="h5 mt-4">Responsable du traitement</h2>
+                <p>
+                    Tarchoun Fruits &amp; Legumes, represente par M. Hamadi Tarchoun.
+                    Contact : <a href="mailto:{{ mail_contact }}">{{ mail_contact }}</a>.
+                </p>
+
+                <h2 class="h5 mt-4">Donnees collectees</h2>
+                <p>La collecte est limitee au strict necessaire :</p>
+                <div class="tnb-tableau tnb-tableau-scroll mb-3">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col">Donnee</th>
+                                <th scope="col">Caractere</th>
+                                <th scope="col">Finalite</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th scope="row" class="fw-normal">Nom et prenom</th>
+                                <td>Obligatoire</td>
+                                <td>Identifier votre commande lors du retrait</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="fw-normal">Adresse email</th>
+                                <td>Obligatoire</td>
+                                <td>Connexion au compte et confirmation de commande</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="fw-normal">Mot de passe</th>
+                                <td>Obligatoire</td>
+                                <td>Securiser l'acces au compte (stocke uniquement hache)</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="fw-normal">Telephone</th>
+                                <td>Facultatif</td>
+                                <td>Vous joindre en cas de probleme sur une commande</td>
+                            </tr>
+                            <tr>
+                                <th scope="row" class="fw-normal">Adresse postale</th>
+                                <td>Facultatif</td>
+                                <td>Aucune livraison : donnee purement informative</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p>
+                    Aucune donnee bancaire n'est collectee : le paiement s'effectue
+                    exclusivement sur le marche.
+                </p>
+
+                <h2 class="h5 mt-4">Base legale et duree de conservation</h2>
+                <p>
+                    Le traitement repose sur l'execution du contrat de vente (preparation
+                    de votre commande) et sur votre consentement lors de la creation du
+                    compte. Les donnees de compte sont conservees tant que celui-ci est
+                    actif ; les commandes sont conservees a des fins de suivi commercial.
+                </p>
+
+                <h2 class="h5 mt-4">Securite</h2>
+                <p>
+                    Les mots de passe sont stockes sous forme hachee (bcrypt / Argon2id)
+                    et ne sont jamais accessibles en clair. Les echanges sont chiffres en
+                    HTTPS en production. Les acces au back-office sont restreints au seul
+                    gerant.
+                </p>
+
+                <h2 class="h5 mt-4">Vos droits</h2>
+                <ul>
+                    <li><strong>Acces :</strong> consultez vos donnees depuis votre profil.</li>
+                    <li><strong>Rectification :</strong> modifiez-les a tout moment depuis votre profil.</li>
+                    <li><strong>Effacement :</strong> supprimez votre compte depuis votre profil ; vos
+                        donnees identifiantes sont alors anonymisees.</li>
+                    <li><strong>Opposition et portabilite :</strong> ecrivez-nous a
+                        <a href="mailto:{{ mail_contact }}">{{ mail_contact }}</a>.</li>
+                </ul>
+                <p class="mb-0">
+                    Vous pouvez egalement introduire une reclamation aupres de la CNIL
+                    (<a href="https://www.cnil.fr" rel="noopener noreferrer" target="_blank">www.cnil.fr</a>).
+                </p>
+
+                <h2 class="h5 mt-4">Cookies</h2>
+                <p class="mb-0">
+                    Le site n'utilise qu'un cookie de session, strictement necessaire au
+                    fonctionnement du panier et de l'authentification, ainsi qu'un cookie
+                    « se souvenir de moi » si vous choisissez cette option. Aucun traceur
+                    publicitaire ou statistique n'est depose.
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,24 @@
+includes:
+    - vendor/phpstan/phpstan-symfony/extension.neon
+    - vendor/phpstan/phpstan-symfony/rules.neon
+    - vendor/phpstan/phpstan-doctrine/extension.neon
+    - vendor/phpstan/phpstan-doctrine/rules.neon
+
+parameters:
+    level: 6
+
+    paths:
+        - src/
+        - tests/
+
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+
+    doctrine:
+        objectManagerLoader: tests/object-manager.php
+        # Les proprietes des entites sont typees nullables alors que les
+        # colonnes sont NOT NULL : c'est le modele genere par MakerBundle.
+        # Une entite fraichement instanciee (formulaire de creation) n'est pas
+        # encore renseignee ; ce sont le Validator et les contraintes du SGBD
+        # qui garantissent la non-nullite au moment de la persistance.
+        allowNullablePropertyForRequiredField: true

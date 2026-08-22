@@ -1,0 +1,155 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon panier — Tarchoun Fruits &amp; Legumes{% endblock %}
+
+{% block corps %}
+    <h1 class="mb-4">Mon panier</h1>
+
+    {% if lignes is empty %}
+        <div class="tnb-vide tnb-bloc">
+            <span class="tnb-vide-pictogramme" aria-hidden="true">🧺</span>
+            <p class="mb-3">Votre panier est vide.</p>
+            <a class="btn btn-tnb" href="{{ path('app_produit_index') }}">Parcourir le catalogue</a>
+        </div>
+    {% else %}
+        {% if indisponibles is not empty %}
+            <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-3" role="alert">
+                <div>
+                    <strong>Le stock a change depuis votre ajout.</strong>
+                    Ces produits ne sont plus disponibles dans la quantite demandee :
+                    {{ indisponibles|map(l => l.produit.nom)|join(', ') }}.
+                </div>
+                <form method="post" action="{{ path('app_panier_ajuster') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('panier_ajuster') }}">
+                    <button type="submit" class="btn btn-tnb btn-sm">Ajuster au stock disponible</button>
+                </form>
+            </div>
+        {% endif %}
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="tnb-tableau tnb-tableau-scroll">
+                    <table class="table align-middle mb-0">
+                        <caption class="visually-hidden">Articles de votre panier</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Produit</th>
+                                <th scope="col">Prix unitaire</th>
+                                <th scope="col">Quantite</th>
+                                <th scope="col" class="text-end">Sous-total</th>
+                                <th scope="col"><span class="visually-hidden">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ligne in lignes %}
+                                {% set produit = ligne.produit %}
+                                {% set pas = produit.uniteVente.pasDeQuantite %}
+                                <tr {{ not ligne.estDisponible ? 'class="table-warning"' : '' }}>
+                                    <th scope="row" class="fw-normal">
+                                        <a href="{{ path('app_produit_show', {id: produit.id}) }}"
+                                           class="fw-semibold text-decoration-none"
+                                           style="color: var(--tnb-texte);">{{ produit.nom }}</a>
+                                        {% if produit.categorie %}
+                                            <span class="tnb-badge {{ produit.categorie.classeBadge }} ms-1">
+                                                {{ produit.categorie.nom }}
+                                            </span>
+                                        {% endif %}
+                                        {% if not ligne.estDisponible %}
+                                            <div class="small tnb-stock-epuise">
+                                                Stock restant : {{ ligne.quantiteDisponible|quantite }} {{ produit.uniteVente.abreviation }}
+                                            </div>
+                                        {% endif %}
+                                    </th>
+
+                                    <td class="text-nowrap">
+                                        {{ produit.prix|prix }}
+                                        <span class="tnb-prix-unite">{{ produit.uniteVente.suffixePrix }}</span>
+                                    </td>
+
+                                    <td>
+                                        <form method="post"
+                                              action="{{ path('app_panier_modifier', {id: produit.id}) }}"
+                                              class="tnb-quantite">
+                                            <input type="hidden" name="_token"
+                                                   value="{{ csrf_token('panier_modifier' ~ produit.id) }}">
+                                            <label class="visually-hidden" for="quantite{{ produit.id }}">
+                                                Quantite pour {{ produit.nom }}
+                                            </label>
+                                            <input type="number" class="form-control form-control-sm"
+                                                   id="quantite{{ produit.id }}" name="quantite"
+                                                   value="{{ ligne.quantite }}" min="0" step="{{ pas }}"
+                                                   max="{{ ligne.quantiteMaximale }}">
+                                            <button type="submit" class="btn btn-tnb-secondaire btn-sm">OK</button>
+                                        </form>
+                                    </td>
+
+                                    <td class="text-end fw-semibold text-nowrap">
+                                        {{ ligne.sousTotal|prix }}
+                                    </td>
+
+                                    <td class="text-end">
+                                        <form method="post" action="{{ path('app_panier_supprimer', {id: produit.id}) }}">
+                                            <input type="hidden" name="_token"
+                                                   value="{{ csrf_token('panier_supprimer' ~ produit.id) }}">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                Retirer
+                                                <span class="visually-hidden">{{ produit.nom }} du panier</span>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="d-flex flex-wrap justify-content-between gap-2 mt-3">
+                    <a class="btn btn-tnb-secondaire" href="{{ path('app_produit_index') }}">
+                        Continuer mes achats
+                    </a>
+                    <form method="post" action="{{ path('app_panier_vider') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('panier_vider') }}">
+                        <button type="submit" class="btn btn-outline-secondary">Vider le panier</button>
+                    </form>
+                </div>
+            </div>
+
+            {# ---------- Recapitulatif ---------- #}
+            <div class="col-lg-4">
+                <div class="tnb-bloc tnb-action-collante">
+                    <h2 class="h5 mb-3">Recapitulatif</h2>
+
+                    <dl class="row mb-3">
+                        <dt class="col-7 fw-normal">Articles</dt>
+                        <dd class="col-5 text-end mb-1">{{ lignes|length }}</dd>
+
+                        <dt class="col-7 fw-normal">Retrait</dt>
+                        <dd class="col-5 text-end mb-0">Sur le marche</dd>
+                    </dl>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between align-items-baseline mb-3">
+                        <span class="fw-semibold">Total</span>
+                        <span class="tnb-total">{{ total|prix }}</span>
+                    </div>
+
+                    <a class="btn btn-tnb w-100 btn-lg" href="{{ path('app_commande_valider') }}">
+                        Valider la commande
+                    </a>
+
+                    {% if not app.user %}
+                        <p class="small text-center mt-2 mb-0" style="color: var(--tnb-gris-texte);">
+                            Vous devrez vous connecter pour finaliser.
+                        </p>
+                    {% endif %}
+
+                    <p class="small mt-3 mb-0" style="color: var(--tnb-gris-texte);">
+                        Aucun paiement en ligne : vous reglez votre commande au moment
+                        du retrait, sur le marche.
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

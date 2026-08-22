@@ -1,0 +1,133 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Commande {{ commande.reference }} — Back-office TNB{% endblock %}
+
+{% block admin_corps %}
+    <nav aria-label="Fil d'Ariane" class="mb-3 tnb-sans-impression">
+        <ol class="breadcrumb small mb-0">
+            <li class="breadcrumb-item"><a href="{{ path('app_admin_commande_index') }}">Commandes</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ commande.reference }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <h1 class="mb-0">{{ commande.reference }}</h1>
+        <span class="tnb-badge {{ commande.statut.classeBadge }}" style="font-size: 0.9rem;">
+            {{ commande.statut.libelle }}
+        </span>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            {# ---------- Bon de preparation ---------- #}
+            <div class="tnb-tableau tnb-tableau-scroll mb-3">
+                <table class="table align-middle mb-0">
+                    <caption class="visually-hidden">Produits a preparer</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Produit</th>
+                            <th scope="col">Quantite</th>
+                            <th scope="col">Prix unitaire</th>
+                            <th scope="col" class="text-end">Sous-total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ligne in commande.lignes %}
+                            <tr>
+                                <th scope="row" class="fw-normal">
+                                    {{ ligne.produit.nom }}
+                                    <span class="tnb-badge {{ ligne.produit.categorie.classeBadge }} ms-1">
+                                        {{ ligne.produit.categorie.nom }}
+                                    </span>
+                                </th>
+                                <td class="fw-semibold text-nowrap">{{ ligne.quantiteLibelle }}</td>
+                                <td class="text-nowrap">{{ ligne.prixUnitaire|prix }}</td>
+                                <td class="text-end fw-semibold text-nowrap">{{ ligne.sousTotal|prix }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th scope="row" colspan="3" class="text-end">Total a encaisser</th>
+                            <td class="text-end"><span class="tnb-total">{{ commande.montantTotal|prix }}</span></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            {% if commande.commentaire %}
+                <div class="tnb-bloc tnb-bloc-accent">
+                    <h2 class="h6 mb-2">Message du client</h2>
+                    <p class="mb-0 small">{{ commande.commentaire }}</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-5">
+            <div class="tnb-bloc mb-4">
+                <h2 class="h6 mb-3">Client</h2>
+                <dl class="row small mb-0">
+                    <dt class="col-5">Nom</dt>
+                    <dd class="col-7">{{ commande.utilisateur.nomComplet }}</dd>
+
+                    <dt class="col-5">Email</dt>
+                    <dd class="col-7 text-break">
+                        <a href="mailto:{{ commande.utilisateur.email }}">{{ commande.utilisateur.email }}</a>
+                    </dd>
+
+                    {% if commande.utilisateur.telephone %}
+                        <dt class="col-5">Telephone</dt>
+                        <dd class="col-7">
+                            <a href="tel:{{ commande.utilisateur.telephone|replace({' ': ''}) }}">
+                                {{ commande.utilisateur.telephone }}
+                            </a>
+                        </dd>
+                    {% endif %}
+
+                    <dt class="col-5">Commandee le</dt>
+                    <dd class="col-7 mb-0">{{ commande.dateCommande|date('d/m/Y à H:i') }}</dd>
+                </dl>
+            </div>
+
+            {# ---------- Workflow de statut (sequence 7.2.3) ---------- #}
+            <div class="tnb-bloc tnb-sans-impression">
+                <h2 class="h6 mb-3">Faire evoluer le statut</h2>
+
+                {% set transitions = commande.statut.transitionsAutorisees %}
+
+                {% if transitions is empty %}
+                    <p class="small mb-0" style="color: var(--tnb-gris-texte);">
+                        La commande est « {{ commande.statut.libelle }} » : son statut
+                        ne peut plus etre modifie.
+                    </p>
+                {% else %}
+                    <p class="small" style="color: var(--tnb-gris-texte);">
+                        Workflow : En attente → Preparee → Recuperee.
+                        L'annulation remet les produits en stock.
+                    </p>
+
+                    <div class="d-grid gap-2">
+                        {% for cible in transitions %}
+                            <form method="post"
+                                  action="{{ path('app_admin_commande_statut', {reference: commande.reference}) }}"
+                                  {% if cible.libereLeStock %}onsubmit="return confirm('Annuler cette commande et remettre les produits en stock ?');"{% endif %}>
+                                <input type="hidden" name="_token"
+                                       value="{{ csrf_token('statut_commande' ~ commande.id) }}">
+                                <input type="hidden" name="statut" value="{{ cible.value }}">
+                                <button type="submit"
+                                        class="btn w-100 {{ cible.libereLeStock ? 'btn-outline-danger' : 'btn-tnb' }}">
+                                    Marquer comme « {{ cible.libelle }} »
+                                </button>
+                            </form>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <button type="button" class="btn btn-outline-secondary w-100 mt-3 tnb-sans-impression"
+                    onclick="window.print();">
+                Imprimer le bon de preparation
+            </button>
+        </div>
+    </div>
+{% endblock %}

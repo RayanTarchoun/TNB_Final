@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes commandes — Tarchoun Fruits &amp; Legumes{% endblock %}
+
+{% block corps %}
+    <h1 class="mb-4">Mes commandes</h1>
+
+    {% if commandes is empty %}
+        <div class="tnb-vide tnb-bloc">
+            <span class="tnb-vide-pictogramme" aria-hidden="true">📋</span>
+            <p class="mb-3">Vous n'avez pas encore passe de commande.</p>
+            <a class="btn btn-tnb" href="{{ path('app_produit_index') }}">Decouvrir le catalogue</a>
+        </div>
+    {% else %}
+        <div class="tnb-tableau tnb-tableau-scroll">
+            <table class="table align-middle mb-0">
+                <caption class="visually-hidden">Historique de vos commandes</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Reference</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Articles</th>
+                        <th scope="col">Montant</th>
+                        <th scope="col">Statut</th>
+                        <th scope="col"><span class="visually-hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for commande in commandes %}
+                        <tr>
+                            <th scope="row" class="fw-semibold text-nowrap">{{ commande.reference }}</th>
+                            <td class="text-nowrap">{{ commande.dateCommande|date('d/m/Y à H:i') }}</td>
+                            <td>{{ commande.nombreArticles }}</td>
+                            <td class="fw-semibold text-nowrap">{{ commande.montantTotal|prix }}</td>
+                            <td>
+                                <span class="tnb-badge {{ commande.statut.classeBadge }}">
+                                    {{ commande.statut.libelle }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-tnb-secondaire btn-sm"
+                                   href="{{ path('app_commande_show', {reference: commande.reference}) }}">
+                                    Detail
+                                    <span class="visually-hidden">de la commande {{ commande.reference }}</span>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

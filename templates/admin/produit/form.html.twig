@@ -1,0 +1,74 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}{{ creation ? 'Nouveau produit' : 'Modifier ' ~ produit.nom }} — Back-office TNB{% endblock %}
+
+{% block admin_corps %}
+    <nav aria-label="Fil d'Ariane" class="mb-3">
+        <ol class="breadcrumb small mb-0">
+            <li class="breadcrumb-item"><a href="{{ path('app_admin_produit_index') }}">Produits</a></li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {{ creation ? 'Nouveau produit' : produit.nom }}
+            </li>
+        </ol>
+    </nav>
+
+    <h1 class="mb-4">{{ creation ? 'Nouveau produit' : 'Modifier « ' ~ produit.nom ~ ' »' }}</h1>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="tnb-bloc">
+                {{ form_start(formulaire, {attr: {novalidate: 'novalidate'}}) }}
+                    {{ form_row(formulaire.nom) }}
+
+                    <div class="row g-3">
+                        <div class="col-sm-6">{{ form_row(formulaire.categorie) }}</div>
+                        <div class="col-sm-6">{{ form_row(formulaire.origine) }}</div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-sm-6">{{ form_row(formulaire.prix) }}</div>
+                        <div class="col-sm-6">{{ form_row(formulaire.uniteVente) }}</div>
+                    </div>
+
+                    {{ form_row(formulaire.description) }}
+                    {{ form_row(formulaire.imageUrl) }}
+                    {{ form_row(formulaire.disponible) }}
+
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <button type="submit" class="btn btn-tnb">
+                            {{ creation ? 'Creer le produit' : 'Enregistrer les modifications' }}
+                        </button>
+                        <a class="btn btn-outline-secondary" href="{{ path('app_admin_produit_index') }}">
+                            Annuler
+                        </a>
+                    </div>
+                {{ form_end(formulaire) }}
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="tnb-bloc tnb-bloc-accent">
+                <h2 class="h6 mb-2">Stock</h2>
+                {% if creation %}
+                    <p class="small mb-0">
+                        Un stock vide sera cree automatiquement. Vous pourrez saisir les
+                        quantites achetees juste apres, depuis l'ecran <strong>Stocks</strong>.
+                    </p>
+                {% else %}
+                    <dl class="row small mb-3">
+                        <dt class="col-7">Quantite achetee</dt>
+                        <dd class="col-5 text-end">{{ produit.stock ? produit.stock.quantiteAchetee|quantite : '—' }}</dd>
+                        <dt class="col-7">Quantite restante</dt>
+                        <dd class="col-5 text-end mb-0">{{ produit.stock ? produit.stock.quantiteDisponible|quantite : '—' }}</dd>
+                    </dl>
+                    {% if produit.stock %}
+                        <a class="btn btn-tnb-secondaire btn-sm w-100"
+                           href="{{ path('app_admin_stock_modifier', {id: produit.stock.id}) }}">
+                            Modifier le stock
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

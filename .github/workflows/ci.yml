@@ -1,0 +1,139 @@
+name: CI
+
+# Pipeline d'integration continue (dossier chap. IV.5).
+# Chaque push sur develop/main et chaque Pull Request rejoue l'ensemble
+# des controles avant qu'un code ne soit integre.
+on:
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main, develop]
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    qualite:
+        name: Qualite de code (PSR-12 + analyse statique)
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Recuperation du code
+              uses: actions/checkout@v4
+
+            - name: Installation de PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.2'
+                  extensions: intl, pdo_mysql, zip, gd, mbstring
+                  coverage: none
+                  tools: composer:v2
+
+            - name: Cache des dependances Composer
+              uses: actions/cache@v4
+              with:
+                  path: vendor
+                  key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+                  restore-keys: composer-${{ runner.os }}-
+
+            - name: Installation des dependances
+              run: composer install --prefer-dist --no-progress --no-interaction
+
+            - name: Respect des normes PSR-12 (PHP CS Fixer)
+              run: vendor/bin/php-cs-fixer fix --dry-run --diff --show-progress=none
+
+            - name: Prechauffage du conteneur (requis par PHPStan)
+              run: php bin/console cache:warmup --env=dev
+              env:
+                  APP_ENV: dev
+
+            - name: Analyse statique (PHPStan niveau 6)
+              run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
+    tests:
+        name: Tests unitaires et fonctionnels
+        runs-on: ubuntu-latest
+
+        services:
+            mysql:
+                image: mysql:8.0
+                env:
+                    MYSQL_ROOT_PASSWORD: root
+                    MYSQL_DATABASE: tnb
+                    MYSQL_USER: tnb
+                    MYSQL_PASSWORD: tnb
+                ports:
+                    - 3306:3306
+                options: >-
+                    --health-cmd="mysqladmin ping -h localhost -u root -proot"
+                    --health-interval=5s
+                    --health-timeout=5s
+                    --health-retries=20
+
+        steps:
+            - name: Recuperation du code
+              uses: actions/checkout@v4
+
+            - name: Installation de PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.2'
+                  extensions: intl, pdo_mysql, zip, gd, mbstring
+                  coverage: none
+                  tools: composer:v2
+
+            - name: Cache des dependances Composer
+              uses: actions/cache@v4
+              with:
+                  path: vendor
+                  key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+                  restore-keys: composer-${{ runner.os }}-
+
+            - name: Installation des dependances
+              run: composer install --prefer-dist --no-progress --no-interaction
+
+            - name: Droits sur la base de test
+              # Doctrine ajoute le suffixe "_test" : l'utilisateur applicatif
+              # doit pouvoir creer et remplir "tnb_test".
+              run: |
+                  mysql -h 127.0.0.1 -u root -proot -e "
+                    CREATE DATABASE IF NOT EXISTS \`tnb_test\`
+                      CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+                    GRANT ALL PRIVILEGES ON \`tnb\_test\`.* TO 'tnb'@'%';
+                    FLUSH PRIVILEGES;"
+
+            - name: Verification du mapping Doctrine
+              # --skip-sync : les colonnes ENUM natives du MPD sont declarees
+              # via columnDefinition, que le comparateur ne sait pas introspecter
+              # (voir README, section "Base de donnees").
+              run: php bin/console doctrine:schema:validate --skip-sync --env=test
+
+            - name: Tests unitaires et fonctionnels (PHPUnit)
+              run: php bin/phpunit --no-coverage
+
+    image-docker:
+        name: Construction de l'image Docker
+        runs-on: ubuntu-latest
+        needs: [qualite, tests]
+
+        steps:
+            - name: Recuperation du code
+              uses: actions/checkout@v4
+
+            - name: Configuration de Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build de l'image de production
+              uses: docker/build-push-action@v5
+              with:
+                  context: .
+                  file: docker/php/Dockerfile
+                  target: prod
+                  push: false
+                  tags: tnb:ci
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max

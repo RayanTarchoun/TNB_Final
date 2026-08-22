@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Catalogue — Tarchoun Fruits &amp; Legumes{% endblock %}
+
+{% block corps %}
+    <div class="row g-4">
+        {# ---------- Sidebar de filtres (Jalon 2, 3.2) ---------- #}
+        <div class="col-lg-3">
+            <button class="btn btn-tnb-secondaire w-100 d-lg-none mb-3" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#panneauFiltres"
+                    aria-expanded="false" aria-controls="panneauFiltres">
+                Filtrer et trier
+            </button>
+
+            <div class="collapse d-lg-block" id="panneauFiltres">
+                <form method="get" action="{{ path('app_produit_index') }}" class="tnb-filtres">
+                    <h2 class="tnb-filtres-titre h6" style="color: var(--tnb-orange-texte);">Filtres</h2>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="recherche">Rechercher</label>
+                        <input type="search" class="form-control" id="recherche" name="q"
+                               value="{{ filtres.q }}" placeholder="Tomates, pommes...">
+                    </div>
+
+                    <fieldset class="mb-3">
+                        <legend class="tnb-filtres-titre h6">Categorie</legend>
+                        {% for ligne in categories %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       name="categorie[]" value="{{ ligne.categorie.id }}"
+                                       id="categorie{{ ligne.categorie.id }}"
+                                       {{ ligne.categorie.id in filtres.categorie ? 'checked' }}>
+                                <label class="form-check-label" for="categorie{{ ligne.categorie.id }}">
+                                    {{ ligne.categorie.nom }}
+                                    <span class="text-muted small">({{ ligne.nbProduits }})</span>
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </fieldset>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="tri">Trier par</label>
+                        <select class="form-select" id="tri" name="tri">
+                            {% for valeur, libelle in tris %}
+                                <option value="{{ valeur }}" {{ filtres.tri == valeur ? 'selected' }}>{{ libelle }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="en_stock" value="1"
+                               id="enStock" {{ filtres.en_stock ? 'checked' }}>
+                        <label class="form-check-label" for="enStock">Uniquement les produits en stock</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-tnb w-100 mb-2">Appliquer</button>
+                    <a href="{{ path('app_produit_index') }}" class="btn btn-link w-100 p-0 small">
+                        Reinitialiser les filtres
+                    </a>
+                </form>
+            </div>
+        </div>
+
+        {# ---------- Grille de produits ---------- #}
+        <div class="col-lg-9">
+            <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 mb-3">
+                <h1 class="mb-0">Nos fruits et legumes</h1>
+                <p class="mb-0" style="color: var(--tnb-gris-texte);">
+                    {{ total }} produit{{ total > 1 ? 's' }} {{ total > 1 ? 'disponibles' : 'disponible' }}
+                    {%- if filtres.q %} pour « {{ filtres.q }} »{% endif %}
+                </p>
+            </div>
+
+            {% if produits is empty %}
+                <div class="tnb-vide tnb-bloc">
+                    <span class="tnb-vide-pictogramme" aria-hidden="true">🔍</span>
+                    <p class="mb-3">Aucun produit ne correspond a votre recherche.</p>
+                    <a class="btn btn-tnb-secondaire" href="{{ path('app_produit_index') }}">
+                        Voir tout le catalogue
+                    </a>
+                </div>
+            {% else %}
+                <div class="row row-cols-2 row-cols-md-3 g-4">
+                    {% for produit in produits %}
+                        <div class="col">
+                            {{ include('partials/_produit_carte.html.twig', {produit: produit}) }}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {{ include('partials/_pagination.html.twig') }}
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

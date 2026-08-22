@@ -1,0 +1,103 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Stocks — Back-office TNB{% endblock %}
+
+{% block admin_corps %}
+    <h1 class="mb-1">Stocks</h1>
+    <p class="mb-4" style="color: var(--tnb-gris-texte);">
+        Saisissez les quantites achetees pour le marche. Le stock restant diminue
+        automatiquement a chaque commande validee.
+    </p>
+
+    {% if stocks is empty %}
+        <div class="tnb-vide tnb-bloc">
+            <span class="tnb-vide-pictogramme" aria-hidden="true">📦</span>
+            <p class="mb-3">Aucun stock a afficher : commencez par creer un produit.</p>
+            <a class="btn btn-tnb" href="{{ path('app_admin_produit_nouveau') }}">Creer un produit</a>
+        </div>
+    {% else %}
+        <div class="tnb-tableau tnb-tableau-scroll">
+            <table class="table align-middle mb-0">
+                <caption class="visually-hidden">Etat des stocks par produit</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Produit</th>
+                        <th scope="col">Jour de marche</th>
+                        <th scope="col">Restant / achete</th>
+                        <th scope="col" style="min-width: 9rem;">Ecoulement</th>
+                        <th scope="col" class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stock in stocks %}
+                        {% set produit = stock.produit %}
+                        {% set bas = stock.quantiteDisponibleFloat <= seuilAlerte %}
+                        <tr>
+                            <th scope="row" class="fw-semibold">
+                                {{ produit.nom }}
+                                <span class="tnb-badge {{ produit.categorie.classeBadge }} ms-1">
+                                    {{ produit.categorie.nom }}
+                                </span>
+                                {% if not produit.disponible %}
+                                    <span class="tnb-badge badge-statut-annulee ms-1">Desactive</span>
+                                {% endif %}
+                            </th>
+
+                            <td class="text-nowrap">{{ stock.dateMarche|date('d/m/Y') }}</td>
+
+                            <td class="text-nowrap">
+                                <span class="{{ stock.estEpuise ? 'tnb-stock-epuise' : (bas ? 'tnb-stock-bas' : 'tnb-stock-ok') }} fw-semibold">
+                                    {{ stock.quantiteDisponible|quantite }}
+                                </span>
+                                <span class="small" style="color: var(--tnb-gris-texte);">
+                                    / {{ stock.quantiteAchetee|quantite }} {{ produit.uniteVente.abreviation }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {% set pourcentage = stock.pourcentageEcoule %}
+                                <div class="tnb-jauge" role="img"
+                                     aria-label="{{ pourcentage }} % du stock ecoule">
+                                    <div class="tnb-jauge-remplissage {{ stock.estEpuise ? 'epuise' : (bas ? 'bas' : '') }}"
+                                         style="width: {{ pourcentage }}%;"></div>
+                                </div>
+                                <span class="small" style="color: var(--tnb-gris-texte);">{{ pourcentage }} % vendu</span>
+                            </td>
+
+                            <td>
+                                <div class="d-flex flex-wrap gap-1 justify-content-end">
+                                    <a class="btn btn-tnb-secondaire btn-sm"
+                                       href="{{ path('app_admin_stock_modifier', {id: stock.id}) }}">
+                                        Modifier<span class="visually-hidden"> le stock de {{ produit.nom }}</span>
+                                    </a>
+
+                                    <form method="post"
+                                          action="{{ path('app_admin_stock_reapprovisionner', {id: stock.id}) }}"
+                                          class="d-flex gap-1">
+                                        <input type="hidden" name="_token"
+                                               value="{{ csrf_token('reappro_stock' ~ stock.id) }}">
+                                        <label class="visually-hidden" for="reappro{{ stock.id }}">
+                                            Quantite achetee pour {{ produit.nom }}
+                                        </label>
+                                        <input type="number" class="form-control form-control-sm"
+                                               id="reappro{{ stock.id }}" name="quantite"
+                                               value="{{ stock.quantiteAchetee }}" min="0" step="0.5"
+                                               style="width: 6rem;">
+                                        <button type="submit" class="btn btn-tnb-vert btn-sm text-nowrap">
+                                            Reappro.<span class="visually-hidden"> {{ produit.nom }}</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <p class="small mt-3 mb-0" style="color: var(--tnb-gris-texte);">
+            « Reappro. » remet le stock restant au niveau de la quantite saisie et
+            positionne le jour de marche a aujourd'hui : c'est le geste du matin.
+        </p>
+    {% endif %}
+{% endblock %}

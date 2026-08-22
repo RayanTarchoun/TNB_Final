@@ -1,0 +1,161 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Tableau de bord — Back-office TNB{% endblock %}
+
+{% block admin_corps %}
+    <h1 class="mb-4">Tableau de bord</h1>
+
+    {# ---------- Les quatre indicateurs du wireframe (Jalon 2, 3.4) ---------- #}
+    <div class="row row-cols-2 row-cols-lg-4 g-3 mb-4">
+        <div class="col">
+            <div class="tnb-indicateur">
+                <p class="tnb-indicateur-valeur mb-0">{{ commandesDuJour }}</p>
+                <p class="tnb-indicateur-libelle mb-0">Commandes du jour</p>
+                <p class="small mb-0 mt-1" style="color: var(--tnb-gris-texte);">
+                    {{ montantDuJour|prix }}
+                </p>
+            </div>
+        </div>
+        <div class="col">
+            <div class="tnb-indicateur {{ stocksBas is empty ? 'tnb-indicateur-vert' : 'tnb-indicateur-rouge' }}">
+                <p class="tnb-indicateur-valeur mb-0">{{ stocksBas|length }}</p>
+                <p class="tnb-indicateur-libelle mb-0">Stocks bas</p>
+                <p class="small mb-0 mt-1" style="color: var(--tnb-gris-texte);">
+                    Seuil : {{ seuilAlerte|quantite }}
+                </p>
+            </div>
+        </div>
+        <div class="col">
+            <div class="tnb-indicateur tnb-indicateur-vert">
+                <p class="tnb-indicateur-valeur mb-0">{{ produitsActifs }}</p>
+                <p class="tnb-indicateur-libelle mb-0">Produits actifs</p>
+            </div>
+        </div>
+        <div class="col">
+            <div class="tnb-indicateur tnb-indicateur-bleu">
+                <p class="tnb-indicateur-valeur mb-0">{{ clientsActifs }}</p>
+                <p class="tnb-indicateur-libelle mb-0">Clients</p>
+            </div>
+        </div>
+    </div>
+
+    {# ---------- Alertes stocks bas ---------- #}
+    {% if stocksBas is not empty %}
+        <div class="tnb-bloc mb-4" style="border-left: 4px solid var(--tnb-rouge-action);">
+            <h2 class="h6 mb-3">⚠️ Stocks a reapprovisionner</h2>
+            <div class="tnb-tableau-scroll">
+                <table class="table table-sm align-middle mb-0">
+                    <caption class="visually-hidden">Produits sous le seuil d'alerte</caption>
+                    <thead class="visually-hidden">
+                        <tr><th scope="col">Produit</th><th scope="col">Restant</th><th scope="col">Action</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for stock in stocksBas %}
+                            <tr>
+                                <th scope="row" class="fw-normal">
+                                    {{ stock.produit.nom }}
+                                    <span class="tnb-badge {{ stock.produit.categorie.classeBadge }} ms-1">
+                                        {{ stock.produit.categorie.nom }}
+                                    </span>
+                                </th>
+                                <td class="{{ stock.estEpuise ? 'tnb-stock-epuise' : 'tnb-stock-bas' }} fw-semibold text-nowrap">
+                                    {{ stock.quantiteDisponible|quantite }} {{ stock.produit.uniteVente.abreviation }}
+                                </td>
+                                <td class="text-end">
+                                    <a class="btn btn-tnb-secondaire btn-sm"
+                                       href="{{ path('app_admin_stock_modifier', {id: stock.id}) }}">Mettre a jour</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row g-4">
+        {# ---------- Dernieres commandes ---------- #}
+        <div class="col-xl-7">
+            <div class="tnb-bloc h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h6 mb-0">Dernieres commandes</h2>
+                    <a class="small" href="{{ path('app_admin_commande_index') }}">Tout voir</a>
+                </div>
+
+                {% if dernieresCommandes is empty %}
+                    <p class="small mb-0" style="color: var(--tnb-gris-texte);">Aucune commande pour le moment.</p>
+                {% else %}
+                    <div class="tnb-tableau-scroll">
+                        <table class="table table-sm align-middle mb-0">
+                            <caption class="visually-hidden">Commandes les plus recentes</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Reference</th>
+                                    <th scope="col">Client</th>
+                                    <th scope="col">Montant</th>
+                                    <th scope="col">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for commande in dernieresCommandes %}
+                                    <tr>
+                                        <th scope="row" class="fw-normal">
+                                            <a href="{{ path('app_admin_commande_show', {reference: commande.reference}) }}">
+                                                {{ commande.reference }}
+                                            </a>
+                                        </th>
+                                        <td class="text-nowrap">{{ commande.utilisateur.nomComplet }}</td>
+                                        <td class="fw-semibold text-nowrap">{{ commande.montantTotal|prix }}</td>
+                                        <td>
+                                            <span class="tnb-badge {{ commande.statut.classeBadge }}">
+                                                {{ commande.statut.libelle }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# ---------- Repartition et meilleures ventes ---------- #}
+        <div class="col-xl-5">
+            <div class="tnb-bloc mb-4">
+                <h2 class="h6 mb-3">Commandes par statut</h2>
+                <ul class="list-unstyled mb-0">
+                    {% for statut in statuts_commande() %}
+                        <li class="d-flex justify-content-between align-items-center py-1">
+                            <a href="{{ path('app_admin_commande_index', {statut: statut.value}) }}"
+                               class="text-decoration-none">
+                                <span class="tnb-badge {{ statut.classeBadge }}">{{ statut.libelle }}</span>
+                            </a>
+                            <span class="fw-semibold">{{ repartition[statut.value] ?? 0 }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="tnb-bloc">
+                <h2 class="h6 mb-3">Produits les plus commandes</h2>
+                {% if meilleuresVentes is empty %}
+                    <p class="small mb-0" style="color: var(--tnb-gris-texte);">Pas encore de donnees.</p>
+                {% else %}
+                    <ol class="list-unstyled mb-0">
+                        {% for vente in meilleuresVentes %}
+                            <li class="d-flex justify-content-between align-items-center py-1 small">
+                                <span>{{ loop.index }}. {{ vente.nom }}</span>
+                                <span class="fw-semibold">{{ vente.quantite|quantite }}</span>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                    <p class="small mb-0 mt-2" style="color: var(--tnb-gris-texte);">
+                        Quantites cumulees, hors commandes annulees. Utile pour ajuster
+                        les achats du prochain marche.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

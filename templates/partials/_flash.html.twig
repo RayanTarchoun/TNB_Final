@@ -1,0 +1,14 @@
+{# Retours immediats a l'utilisateur (Jalon 2, 5.1 "Feedback immediat").
+   Les messages flash vivent en session : hors requete, il n'y en a aucun. #}
+{% for type, messages in app.request ? app.flashes(['success', 'danger', 'warning', 'info']) : {} %}
+    {% for message in messages %}
+        <div class="alert alert-{{ type }} alert-dismissible fade show d-flex align-items-start gap-2"
+             role="{{ type == 'danger' ? 'alert' : 'status' }}">
+            <span aria-hidden="true">
+                {{- {'success': '✅', 'danger': '⛔', 'warning': '⚠️', 'info': 'ℹ️'}[type] ?? '' -}}
+            </span>
+            <div class="flex-grow-1">{{ message }}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+    {% endfor %}
+{% endfor %}

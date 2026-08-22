@@ -1,0 +1,78 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Commandes — Back-office TNB{% endblock %}
+
+{% block admin_corps %}
+    <h1 class="mb-3">Commandes</h1>
+
+    {# ---------- Filtre par statut ---------- #}
+    <div class="d-flex flex-wrap gap-2 mb-4" role="group" aria-label="Filtrer par statut">
+        <a class="btn btn-sm {{ statutActif is null ? 'btn-tnb' : 'btn-outline-secondary' }}"
+           href="{{ path('app_admin_commande_index') }}">
+            Toutes ({{ repartition|reduce((total, nombre) => total + nombre, 0) }})
+        </a>
+        {% for statut in statuts_commande() %}
+            <a class="btn btn-sm {{ statutActif == statut ? 'btn-tnb' : 'btn-outline-secondary' }}"
+               href="{{ path('app_admin_commande_index', {statut: statut.value}) }}">
+                {{ statut.libelle }} ({{ repartition[statut.value] ?? 0 }})
+            </a>
+        {% endfor %}
+    </div>
+
+    {% if commandes is empty %}
+        <div class="tnb-vide tnb-bloc">
+            <span class="tnb-vide-pictogramme" aria-hidden="true">🧾</span>
+            <p class="mb-0">
+                {{ statutActif ? 'Aucune commande avec ce statut.' : 'Aucune commande enregistree.' }}
+            </p>
+        </div>
+    {% else %}
+        <div class="tnb-tableau tnb-tableau-scroll">
+            <table class="table align-middle mb-0">
+                <caption class="visually-hidden">Liste des commandes</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Reference</th>
+                        <th scope="col">Client</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Articles</th>
+                        <th scope="col">Montant</th>
+                        <th scope="col">Statut</th>
+                        <th scope="col" class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for commande in commandes %}
+                        <tr>
+                            <th scope="row" class="fw-semibold text-nowrap">
+                                <a href="{{ path('app_admin_commande_show', {reference: commande.reference}) }}">
+                                    {{ commande.reference }}
+                                </a>
+                            </th>
+                            <td>
+                                {{ commande.utilisateur.nomComplet }}
+                                <div class="small" style="color: var(--tnb-gris-texte);">
+                                    {{ commande.utilisateur.telephone ?: commande.utilisateur.email }}
+                                </div>
+                            </td>
+                            <td class="text-nowrap">{{ commande.dateCommande|date('d/m/Y à H:i') }}</td>
+                            <td>{{ commande.nombreArticles }}</td>
+                            <td class="fw-semibold text-nowrap">{{ commande.montantTotal|prix }}</td>
+                            <td>
+                                <span class="tnb-badge {{ commande.statut.classeBadge }}">
+                                    {{ commande.statut.libelle }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-tnb-secondaire btn-sm"
+                                   href="{{ path('app_admin_commande_show', {reference: commande.reference}) }}">
+                                    Detail<span class="visually-hidden"> de {{ commande.reference }}</span>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

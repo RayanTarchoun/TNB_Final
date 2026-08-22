@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Commande {{ commande.reference }}{% endblock %}
+
+{% block corps %}
+    <nav aria-label="Fil d'Ariane" class="mb-3 tnb-sans-impression">
+        <ol class="breadcrumb small mb-0">
+            <li class="breadcrumb-item"><a href="{{ path('app_commande_historique') }}">Mes commandes</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ commande.reference }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <h1 class="mb-0">Commande {{ commande.reference }}</h1>
+        <span class="tnb-badge {{ commande.statut.classeBadge }}" style="font-size: 0.9rem;">
+            {{ commande.statut.libelle }}
+        </span>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="tnb-tableau tnb-tableau-scroll">
+                <table class="table align-middle mb-0">
+                    <caption class="visually-hidden">Detail de la commande</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Produit</th>
+                            <th scope="col">Prix unitaire</th>
+                            <th scope="col">Quantite</th>
+                            <th scope="col" class="text-end">Sous-total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ligne in commande.lignes %}
+                            <tr>
+                                <th scope="row" class="fw-normal">
+                                    <a href="{{ path('app_produit_show', {id: ligne.produit.id}) }}"
+                                       class="text-decoration-none" style="color: var(--tnb-texte);">
+                                        {{ ligne.produit.nom }}
+                                    </a>
+                                </th>
+                                <td class="text-nowrap">{{ ligne.prixUnitaire|prix }}</td>
+                                <td class="text-nowrap">{{ ligne.quantiteLibelle }}</td>
+                                <td class="text-end fw-semibold text-nowrap">{{ ligne.sousTotal|prix }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th scope="row" colspan="3" class="text-end">Total</th>
+                            <td class="text-end"><span class="tnb-total">{{ commande.montantTotal|prix }}</span></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <p class="small mt-2 mb-0" style="color: var(--tnb-gris-texte);">
+                Les prix affiches sont ceux en vigueur au moment de la commande.
+            </p>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="tnb-bloc mb-3">
+                <h2 class="h6 mb-3">Informations</h2>
+                <dl class="row small mb-0">
+                    <dt class="col-5">Commandee le</dt>
+                    <dd class="col-7">{{ commande.dateCommande|date('d/m/Y à H:i') }}</dd>
+
+                    {% if commande.dateMiseAJour %}
+                        <dt class="col-5">Mise a jour</dt>
+                        <dd class="col-7">{{ commande.dateMiseAJour|date('d/m/Y à H:i') }}</dd>
+                    {% endif %}
+
+                    <dt class="col-5">Retrait</dt>
+                    <dd class="col-7">{{ marche_lieu }}</dd>
+
+                    <dt class="col-5">Paiement</dt>
+                    <dd class="col-7 mb-0">Sur le marche</dd>
+                </dl>
+
+                {% if commande.commentaire %}
+                    <hr>
+                    <p class="small mb-0"><strong>Votre message :</strong><br>{{ commande.commentaire }}</p>
+                {% endif %}
+            </div>
+
+            {% if is_granted('COMMANDE_ANNULER', commande) %}
+                <div class="tnb-bloc tnb-sans-impression">
+                    <h2 class="h6 mb-2">Annuler la commande</h2>
+                    <p class="small" style="color: var(--tnb-gris-texte);">
+                        Les produits reserves seront immediatement remis en vente.
+                    </p>
+                    <form method="post"
+                          action="{{ path('app_commande_annuler', {reference: commande.reference}) }}"
+                          onsubmit="return confirm('Confirmez-vous l\'annulation de cette commande ?');">
+                        <input type="hidden" name="_token"
+                               value="{{ csrf_token('annuler_commande' ~ commande.id) }}">
+                        <button type="submit" class="btn btn-outline-danger w-100">
+                            Annuler ma commande
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

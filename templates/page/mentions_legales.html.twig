@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mentions legales — Tarchoun Fruits &amp; Legumes{% endblock %}
+
+{% block corps %}
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4">Mentions legales</h1>
+
+            <div class="tnb-bloc">
+                <h2 class="h5">Editeur du site</h2>
+                <p>
+                    Tarchoun Fruits &amp; Legumes — entreprise familiale de vente de fruits
+                    et legumes sur les marches.<br>
+                    Representant legal : M. Hamadi Tarchoun.<br>
+                    Adresse du point de vente : {{ marche_lieu }}.<br>
+                    Telephone : {{ marche_telephone }} — Email : {{ mail_contact }}.
+                </p>
+
+                <h2 class="h5 mt-4">Objet du site</h2>
+                <p>
+                    Le site permet aux clients particuliers de consulter les produits
+                    disponibles et de passer commande a l'avance, en fonction des stocks
+                    reellement achetes pour le prochain marche. Le paiement et le retrait
+                    des commandes s'effectuent exclusivement sur le marche : aucun
+                    paiement en ligne ni aucune livraison ne sont proposes.
+                </p>
+
+                <h2 class="h5 mt-4">Hebergement</h2>
+                <p>
+                    L'application est hebergee sur une infrastructure conteneurisee
+                    (Docker) operee par l'editeur. Les echanges entre le navigateur et
+                    le serveur sont chiffres en HTTPS.
+                </p>
+
+                <h2 class="h5 mt-4">Propriete intellectuelle</h2>
+                <p>
+                    L'ensemble des contenus de ce site (textes, identite visuelle,
+                    photographies de produits) est la propriete de Tarchoun Fruits &amp;
+                    Legumes, sauf mention contraire. Toute reproduction sans autorisation
+                    est interdite.
+                </p>
+
+                <h2 class="h5 mt-4">Donnees personnelles</h2>
+                <p>
+                    Le traitement de vos donnees est decrit dans notre
+                    <a href="{{ path('app_confidentialite') }}">politique de confidentialite</a>.
+                </p>
+
+                <h2 class="h5 mt-4">Contact</h2>
+                <p class="mb-0">
+                    Pour toute question relative au site ou a une commande, ecrivez-nous
+                    a <a href="mailto:{{ mail_contact }}">{{ mail_contact }}</a> ou
+                    presentez-vous a notre stand ({{ marche_jours }}, {{ marche_horaires }}).
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

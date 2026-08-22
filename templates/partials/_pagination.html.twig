@@ -1,0 +1,24 @@
+{# Pagination du catalogue : conserve les filtres en cours. #}
+{% if nombreDePages > 1 %}
+    <nav aria-label="Pagination du catalogue" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {{ page <= 1 ? 'disabled' }}">
+                <a class="page-link" href="{{ path('app_produit_index', filtres|merge({page: page - 1})) }}"
+                   {{ page <= 1 ? 'tabindex="-1" aria-disabled="true"' : '' }}>Precedent</a>
+            </li>
+
+            {% for numero in 1..nombreDePages %}
+                <li class="page-item {{ numero == page ? 'active' }}">
+                    <a class="page-link"
+                       href="{{ path('app_produit_index', filtres|merge({page: numero})) }}"
+                       {{ numero == page ? 'aria-current="page"' : '' }}>{{ numero }}</a>
+                </li>
+            {% endfor %}
+
+            <li class="page-item {{ page >= nombreDePages ? 'disabled' }}">
+                <a class="page-link" href="{{ path('app_produit_index', filtres|merge({page: page + 1})) }}"
+                   {{ page >= nombreDePages ? 'tabindex="-1" aria-disabled="true"' : '' }}>Suivant</a>
+            </li>
+        </ul>
+    </nav>
+{% endif %}

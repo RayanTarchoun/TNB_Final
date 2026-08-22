@@ -1,0 +1,73 @@
+security:
+    # Hachage des mots de passe : "auto" selectionne le meilleur algorithme
+    # disponible (Argon2id si l'extension sodium est presente, sinon bcrypt).
+    # CDCF 3.5 "Securite" / Dossier chap. IX.3
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+    # L'email est l'identifiant de connexion (dictionnaire de donnees 6.2.1)
+    providers:
+        utilisateurs:
+            entity:
+                class: App\Entity\Utilisateur
+                property: email
+
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        main:
+            lazy: true
+            provider: utilisateurs
+            # Refuse la connexion d'un compte desactive (champ "actif")
+            user_checker: App\Security\UtilisateurChecker
+
+            form_login:
+                login_path: app_connexion
+                check_path: app_connexion
+                username_parameter: email
+                password_parameter: motDePasse
+                enable_csrf: true
+                default_target_path: app_produit_index
+                # Renvoie l'utilisateur vers la page qu'il tentait d'atteindre
+                use_referer: true
+
+            # Protection contre le brute force (chap. IX.3)
+            login_throttling:
+                max_attempts: 5
+                interval: '15 minutes'
+
+            logout:
+                path: app_deconnexion
+                target: app_accueil
+
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 604800 # 7 jours
+                path: /
+                secure: auto
+                samesite: lax
+
+    # Un administrateur dispose egalement de tous les droits d'un client
+    role_hierarchy:
+        ROLE_ADMIN: [ROLE_CLIENT]
+
+    # Cloisonnement client / administrateur (CDCF 3.3.6)
+    access_control:
+        - { path: ^/connexion, roles: PUBLIC_ACCESS }
+        - { path: ^/inscription, roles: PUBLIC_ACCESS }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/commande, roles: ROLE_CLIENT }
+        - { path: ^/mes-commandes, roles: ROLE_CLIENT }
+        - { path: ^/profil, roles: ROLE_CLIENT }
+
+when@test:
+    security:
+        password_hashers:
+            # Accelere les tests : cout minimal du hachage
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4
+                time_cost: 3
+                memory_cost: 10

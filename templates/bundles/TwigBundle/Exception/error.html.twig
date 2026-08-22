@@ -1,0 +1,48 @@
+{# Page d'erreur affichee en production (APP_ENV=prod).
+   Aucun detail technique n'est expose : les traces partent dans les logs. #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Erreur {{ status_code }} — Tarchoun Fruits &amp; Legumes{% endblock %}
+
+{% block corps %}
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="tnb-bloc text-center">
+                <span style="font-size: 3.5rem; display: block;" aria-hidden="true">
+                    {{- status_code == 404 ? '🧺' : '🍅' -}}
+                </span>
+
+                <h1 class="h3 mt-2 mb-3">
+                    {% if status_code == 404 %}
+                        Cette page n'existe pas
+                    {% elseif status_code == 403 %}
+                        Acces refuse
+                    {% else %}
+                        Une erreur est survenue
+                    {% endif %}
+                </h1>
+
+                <p class="mb-4" style="color: var(--tnb-gris-texte);">
+                    {% if status_code == 404 %}
+                        Le produit ou la page que vous cherchez a peut-etre ete retire
+                        de la vente. Le catalogue est a jour a chaque marche.
+                    {% elseif status_code == 403 %}
+                        Vous n'avez pas les droits necessaires pour consulter cette page.
+                    {% else %}
+                        Nous n'avons pas pu traiter votre demande. Merci de reessayer
+                        dans un instant, ou de nous contacter directement sur le marche.
+                    {% endif %}
+                </p>
+
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <a class="btn btn-tnb" href="{{ path('app_produit_index') }}">Voir le catalogue</a>
+                    <a class="btn btn-tnb-secondaire" href="{{ path('app_accueil') }}">Retour a l'accueil</a>
+                </div>
+
+                <p class="small mt-4 mb-0" style="color: var(--tnb-gris-texte);">
+                    Code d'erreur : {{ status_code }}
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
