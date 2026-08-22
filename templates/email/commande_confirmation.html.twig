@@ -1,0 +1,66 @@
+{% extends 'email/_base.html.twig' %}
+
+{% block sujet %}Votre commande {{ commande.reference }} est enregistree{% endblock %}
+
+{% block contenu %}
+    <h1 style="font-size:20px; margin:0 0 12px;">Bonjour {{ commande.utilisateur.prenom }},</h1>
+
+    <p style="margin:0 0 16px; line-height:1.6;">
+        Votre commande <strong>{{ commande.reference }}</strong> a bien ete enregistree.
+        Nous la preparons pour le prochain marche.
+    </p>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+           style="border-collapse:collapse; margin:0 0 16px;">
+        <thead>
+            <tr>
+                <th align="left" style="background-color:#2c2c2c; color:#ffffff; font-size:13px; padding:8px 10px;">Produit</th>
+                <th align="left" style="background-color:#2c2c2c; color:#ffffff; font-size:13px; padding:8px 10px;">Quantite</th>
+                <th align="right" style="background-color:#2c2c2c; color:#ffffff; font-size:13px; padding:8px 10px;">Sous-total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ligne in commande.lignes %}
+                <tr>
+                    <td style="padding:8px 10px; border-bottom:1px solid #e6ddd2; font-size:14px;">
+                        {{ ligne.produit.nom }}
+                    </td>
+                    <td style="padding:8px 10px; border-bottom:1px solid #e6ddd2; font-size:14px;">
+                        {{ ligne.quantiteLibelle }}
+                    </td>
+                    <td align="right" style="padding:8px 10px; border-bottom:1px solid #e6ddd2; font-size:14px; font-weight:600;">
+                        {{ ligne.sousTotal|prix }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2" align="right" style="padding:10px; font-size:14px; font-weight:600;">
+                    Total a regler sur place
+                </td>
+                <td align="right" style="padding:10px; font-size:18px; font-weight:700; color:#96430a;">
+                    {{ commande.montantTotal|prix }}
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+    {% if commande.commentaire %}
+        <p style="margin:0 0 16px; padding:12px; background-color:#fdf1e3; border-radius:8px; font-size:14px; line-height:1.6;">
+            <strong>Votre message :</strong><br>{{ commande.commentaire }}
+        </p>
+    {% endif %}
+
+    <p style="margin:0 0 20px; line-height:1.6;">
+        Presentez simplement votre reference <strong>{{ commande.reference }}</strong>
+        a notre stand pour recuperer et regler votre commande.
+    </p>
+
+    <p style="margin:0;">
+        <a href="{{ url('app_commande_show', {reference: commande.reference}) }}"
+           style="display:inline-block; background-color:#b45309; color:#ffffff; text-decoration:none; padding:12px 22px; border-radius:8px; font-weight:600;">
+            Suivre ma commande
+        </a>
+    </p>
+{% endblock %}

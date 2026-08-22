@@ -1,0 +1,43 @@
+{% extends 'email/_base.html.twig' %}
+
+{% block sujet %}Commande {{ commande.reference }} : {{ commande.statut.libelle }}{% endblock %}
+
+{% block contenu %}
+    <h1 style="font-size:20px; margin:0 0 12px;">Bonjour {{ commande.utilisateur.prenom }},</h1>
+
+    {% set statut = commande.statut.value %}
+
+    <p style="margin:0 0 16px; line-height:1.6;">
+        {% if statut == 'PREPAREE' %}
+            Bonne nouvelle : votre commande <strong>{{ commande.reference }}</strong>
+            est prete. Vous pouvez venir la recuperer a notre stand.
+        {% elseif statut == 'RECUPEREE' %}
+            Votre commande <strong>{{ commande.reference }}</strong> a bien ete
+            recuperee. Merci de votre confiance et a bientot sur le marche !
+        {% elseif statut == 'ANNULEE' %}
+            Votre commande <strong>{{ commande.reference }}</strong> a ete annulee.
+            Les produits reserves ont ete remis en vente. N'hesitez pas a passer une
+            nouvelle commande.
+        {% else %}
+            Le statut de votre commande <strong>{{ commande.reference }}</strong> a ete
+            mis a jour : <strong>{{ commande.statut.libelle }}</strong>.
+        {% endif %}
+    </p>
+
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px;">
+        <tr>
+            <td style="padding:12px 18px; background-color:#fdf1e3; border-radius:8px; font-size:14px; line-height:1.7;">
+                <strong>Reference :</strong> {{ commande.reference }}<br>
+                <strong>Statut :</strong> {{ commande.statut.libelle }}<br>
+                <strong>Montant :</strong> {{ commande.montantTotal|prix }}
+            </td>
+        </tr>
+    </table>
+
+    <p style="margin:0;">
+        <a href="{{ url('app_commande_show', {reference: commande.reference}) }}"
+           style="display:inline-block; background-color:#b45309; color:#ffffff; text-decoration:none; padding:12px 22px; border-radius:8px; font-weight:600;">
+            Voir ma commande
+        </a>
+    </p>
+{% endblock %}
