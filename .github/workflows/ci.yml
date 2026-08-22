@@ -46,10 +46,10 @@ jobs:
             - name: Respect des normes PSR-12 (PHP CS Fixer)
               run: vendor/bin/php-cs-fixer fix --dry-run --diff --show-progress=none
 
-            - name: Prechauffage du conteneur (requis par PHPStan)
-              run: php bin/console cache:warmup --env=dev
+            - name: Prechauffage du conteneur de test (requis par PHPStan)
+              run: php bin/console cache:warmup --env=test
               env:
-                  APP_ENV: dev
+                  APP_ENV: test
 
             - name: Analyse statique (PHPStan niveau 6)
               run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
@@ -105,6 +105,11 @@ jobs:
                       CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
                     GRANT ALL PRIVILEGES ON \`tnb\_test\`.* TO 'tnb'@'%';
                     FLUSH PRIVILEGES;"
+
+            - name: Installation du pilote de navigateur (tests Panther)
+              # Les runners GitHub embarquent Chrome ; bdi telecharge le
+              # chromedriver correspondant a sa version exacte.
+              run: vendor/bin/bdi detect drivers
 
             - name: Verification du mapping Doctrine
               # --skip-sync : les colonnes ENUM natives du MPD sont declarees
