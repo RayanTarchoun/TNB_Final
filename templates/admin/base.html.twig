@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Back-office — Tarchoun Fruits &amp; Legumes{% endblock %}
+
+{% block corps %}
+    {% set route = app.request.attributes.get('_route') %}
+
+    <div class="row g-4">
+        <div class="col-lg-3">
+            <nav class="tnb-admin-sidebar" aria-label="Navigation du back-office">
+                <p class="text-uppercase small mb-2 px-2" style="color: #a9a199; letter-spacing: .08em;">
+                    Administration
+                </p>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {{ route == 'app_admin_dashboard' ? 'actif' }}"
+                           href="{{ path('app_admin_dashboard') }}">
+                            <span aria-hidden="true">📊</span> Tableau de bord
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ route starts with 'app_admin_produit' ? 'actif' }}"
+                           href="{{ path('app_admin_produit_index') }}">
+                            <span aria-hidden="true">🥕</span> Produits
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ route starts with 'app_admin_stock' ? 'actif' }}"
+                           href="{{ path('app_admin_stock_index') }}">
+                            <span aria-hidden="true">📦</span> Stocks
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ route starts with 'app_admin_commande' ? 'actif' }}"
+                           href="{{ path('app_admin_commande_index') }}">
+                            <span aria-hidden="true">🧾</span> Commandes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ route starts with 'app_admin_categorie' ? 'actif' }}"
+                           href="{{ path('app_admin_categorie_index') }}">
+                            <span aria-hidden="true">🏷️</span> Categories
+                        </a>
+                    </li>
+                </ul>
+
+                <hr style="border-color: rgb(255 255 255 / 15%);">
+
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_accueil') }}">
+                            <span aria-hidden="true">↩</span> Retour au site
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <div class="col-lg-9">
+            {% block admin_corps %}{% endblock %}
+        </div>
+    </div>
+{% endblock %}

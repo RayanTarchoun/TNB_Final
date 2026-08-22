@@ -1,0 +1,112 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Produits — Back-office TNB{% endblock %}
+
+{% block admin_corps %}
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <h1 class="mb-0">Produits</h1>
+        <a class="btn btn-tnb" href="{{ path('app_admin_produit_nouveau') }}">+ Nouveau produit</a>
+    </div>
+
+    {% if produits is empty %}
+        <div class="tnb-vide tnb-bloc">
+            <span class="tnb-vide-pictogramme" aria-hidden="true">🥕</span>
+            <p class="mb-3">Aucun produit enregistre.</p>
+            <a class="btn btn-tnb" href="{{ path('app_admin_produit_nouveau') }}">Creer le premier produit</a>
+        </div>
+    {% else %}
+        <div class="tnb-tableau tnb-tableau-scroll">
+            <table class="table align-middle mb-0">
+                <caption class="visually-hidden">Liste des produits</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Produit</th>
+                        <th scope="col">Categorie</th>
+                        <th scope="col">Prix</th>
+                        <th scope="col">Stock</th>
+                        <th scope="col">Etat</th>
+                        <th scope="col" class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for produit in produits %}
+                        <tr>
+                            <th scope="row" class="fw-semibold">
+                                <a href="{{ path('app_produit_show', {id: produit.id}) }}"
+                                   class="text-decoration-none" style="color: var(--tnb-texte);">
+                                    {{ produit.nom }}
+                                </a>
+                                {% if produit.origine %}
+                                    <div class="small fw-normal" style="color: var(--tnb-gris-texte);">
+                                        {{ produit.origine }}
+                                    </div>
+                                {% endif %}
+                            </th>
+
+                            <td>
+                                <span class="tnb-badge {{ produit.categorie.classeBadge }}">
+                                    {{ produit.categorie.nom }}
+                                </span>
+                            </td>
+
+                            <td class="text-nowrap">
+                                {{ produit.prix|prix }}
+                                <span class="tnb-prix-unite">{{ produit.uniteVente.suffixePrix }}</span>
+                            </td>
+
+                            <td class="text-nowrap">
+                                {% if produit.stock %}
+                                    <span class="{{ produit.stock.estEpuise ? 'tnb-stock-epuise' : (produit.quantiteDisponible <= 3 ? 'tnb-stock-bas' : 'tnb-stock-ok') }} fw-semibold">
+                                        {{ produit.stock.quantiteDisponible|quantite }}
+                                    </span>
+                                    <span class="small" style="color: var(--tnb-gris-texte);">
+                                        / {{ produit.stock.quantiteAchetee|quantite }}
+                                        {{ produit.uniteVente.abreviation }}
+                                    </span>
+                                {% else %}
+                                    <span class="small" style="color: var(--tnb-gris-texte);">Non renseigne</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if produit.disponible %}
+                                    <span class="tnb-badge badge-legume">Actif</span>
+                                {% else %}
+                                    <span class="tnb-badge badge-statut-annulee">Desactive</span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                <div class="d-flex flex-wrap gap-1 justify-content-end">
+                                    <a class="btn btn-tnb-secondaire btn-sm"
+                                       href="{{ path('app_admin_produit_modifier', {id: produit.id}) }}">
+                                        Modifier<span class="visually-hidden"> {{ produit.nom }}</span>
+                                    </a>
+
+                                    <form method="post" action="{{ path('app_admin_produit_basculer', {id: produit.id}) }}">
+                                        <input type="hidden" name="_token"
+                                               value="{{ csrf_token('basculer_produit' ~ produit.id) }}">
+                                        <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                            {{ produit.disponible ? 'Desactiver' : 'Activer' }}
+                                            <span class="visually-hidden">{{ produit.nom }}</span>
+                                        </button>
+                                    </form>
+
+                                    <form method="post"
+                                          action="{{ path('app_admin_produit_supprimer', {id: produit.id}) }}"
+                                          onsubmit="return confirm('Supprimer definitivement « {{ produit.nom|e('js') }} » ?');">
+                                        <input type="hidden" name="_token"
+                                               value="{{ csrf_token('supprimer_produit' ~ produit.id) }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            Supprimer<span class="visually-hidden"> {{ produit.nom }}</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Modifier {{ categorie.nom }} — Back-office TNB{% endblock %}
+
+{% block admin_corps %}
+    <nav aria-label="Fil d'Ariane" class="mb-3">
+        <ol class="breadcrumb small mb-0">
+            <li class="breadcrumb-item"><a href="{{ path('app_admin_categorie_index') }}">Categories</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ categorie.nom }}</li>
+        </ol>
+    </nav>
+
+    <h1 class="mb-4">Modifier « {{ categorie.nom }} »</h1>
+
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="tnb-bloc">
+                {{ form_start(formulaire, {attr: {novalidate: 'novalidate'}}) }}
+                    {{ form_row(formulaire.nom) }}
+                    {{ form_row(formulaire.description) }}
+
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <button type="submit" class="btn btn-tnb">Enregistrer</button>
+                        <a class="btn btn-outline-secondary" href="{{ path('app_admin_categorie_index') }}">
+                            Annuler
+                        </a>
+                    </div>
+                {{ form_end(formulaire) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}

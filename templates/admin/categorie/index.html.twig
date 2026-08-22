@@ -1,0 +1,65 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block title %}Categories — Back-office TNB{% endblock %}
+
+{% block admin_corps %}
+    <h1 class="mb-4">Categories</h1>
+
+    <div class="row g-4">
+        <div class="col-lg-7">
+            {% if categories is empty %}
+                <div class="tnb-vide tnb-bloc">
+                    <span class="tnb-vide-pictogramme" aria-hidden="true">🏷️</span>
+                    <p class="mb-0">Aucune categorie : creez-en une pour classer vos produits.</p>
+                </div>
+            {% else %}
+                <div class="tnb-tableau tnb-tableau-scroll">
+                    <table class="table align-middle mb-0">
+                        <caption class="visually-hidden">Liste des categories</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Categorie</th>
+                                <th scope="col">Produits actifs</th>
+                                <th scope="col" class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ligne in categories %}
+                                <tr>
+                                    <th scope="row">
+                                        <span class="tnb-badge {{ ligne.categorie.classeBadge }}">
+                                            {{ ligne.categorie.nom }}
+                                        </span>
+                                        {% if ligne.categorie.description %}
+                                            <div class="small fw-normal mt-1" style="color: var(--tnb-gris-texte);">
+                                                {{ ligne.categorie.description }}
+                                            </div>
+                                        {% endif %}
+                                    </th>
+                                    <td>{{ ligne.nbProduits }}</td>
+                                    <td class="text-end">
+                                        <a class="btn btn-tnb-secondaire btn-sm"
+                                           href="{{ path('app_admin_categorie_modifier', {id: ligne.categorie.id}) }}">
+                                            Modifier<span class="visually-hidden"> {{ ligne.categorie.nom }}</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-5">
+            <div class="tnb-bloc">
+                <h2 class="h6 mb-3">Nouvelle categorie</h2>
+                {{ form_start(formulaire, {attr: {novalidate: 'novalidate'}}) }}
+                    {{ form_row(formulaire.nom) }}
+                    {{ form_row(formulaire.description) }}
+                    <button type="submit" class="btn btn-tnb w-100 mt-2">Creer la categorie</button>
+                {{ form_end(formulaire) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
