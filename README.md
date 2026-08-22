@@ -61,10 +61,21 @@ Projet fil rouge du titre professionnel **Concepteur Développeur d'Applications
 
 ### Intégration externe
 
-La page d'accueil affiche la **météo des prochains jours de marché** via l'API
-publique [Open-Meteo](https://open-meteo.com) (sans clé). L'information aide le
-gérant à doser ses achats. Le service est conçu pour ne jamais casser la page :
-en cas d'indisponibilité de l'API, l'incident est journalisé et le bloc disparaît.
+La page d'accueil affiche la **météo des prochains jours de marché** via
+[Open-Meteo](https://open-meteo.com). L'information aide le gérant à doser ses
+achats. Le service est conçu pour ne jamais casser la page : en cas
+d'indisponibilité de l'API, l'incident est journalisé et le bloc disparaît.
+
+**Gestion de la clé d'API.** L'offre gratuite d'Open-Meteo n'en demande aucune ;
+l'offre commerciale exige un paramètre `apikey`. Le service le prend en charge
+via la variable d'environnement `METEO_API_CLE`, jamais codée en dur ni
+versionnée : `.env` ne porte que la variable vide, la valeur réelle se renseigne
+dans `.env.local` en développement et par variable d'environnement du conteneur
+en production.
+
+Une subtilité mérite d'être signalée : les exceptions du client HTTP citent
+l'URL appelée, clé comprise. Sans précaution, elle finirait en clair dans les
+logs. Le service la **masque avant journalisation**, et un test le vérifie.
 
 ---
 
@@ -113,6 +124,52 @@ docker compose exec app php bin/console doctrine:fixtures:load --no-interaction
 
 Arrêt : `docker compose down` (les données sont conservées dans un volume nommé).
 Réinitialisation complète : `docker compose down -v`.
+
+### En cas de conflit de port
+
+Un serveur MySQL déjà installé sur le poste occupe souvent 3306 ou 3307, et
+8080 peut être pris par un autre service. Les trois ports publiés sont
+surchargeables sans modifier `docker-compose.yml` :
+
+```bash
+TNB_PORT_APP=8000 TNB_PORT_DB=3308 TNB_PORT_PHPMYADMIN=8081 docker compose up -d --build
+```
+
+Sous PowerShell :
+
+```powershell
+$env:TNB_PORT_APP='8000'; $env:TNB_PORT_DB='3308'
+docker compose up -d --build
+```
+
+Vérifiez ensuite que la pile répond : `curl http://localhost:8000/sante`.
+
+### Performance : dev ≠ prod
+
+Le conteneur de développement monte le code depuis l'hôte et exécute Symfony en
+mode debug. Sur un poste Windows, ce montage est lent : mesuré sur ce projet,
+une page du catalogue met **environ 7,5 s**. Ce n'est pas représentatif de
+l'application — c'est le coût du montage de fichiers.
+
+La même page servie par l'**image de production**, où le code est embarqué et
+OPcache préchargé, répond en **environ 30 ms** :
+
+| Environnement | `/produits` |
+|---|---|
+| Conteneur de développement (bind mount Windows) | ~7 500 ms |
+| Image de production (code embarqué) | ~32 ms |
+
+> **Pour une démonstration, utilisez l'image de production**, jamais le
+> conteneur de développement — ou lancez `symfony server:start` en local, qui
+> ne souffre pas du montage.
+
+```bash
+docker build --target prod -t tnb:prod -f docker/php/Dockerfile .
+docker run -d --name tnb_demo --network tnb_tnb -p 8100:80 \
+  -e APP_ENV=prod -e APP_DEBUG=0 -e APP_SECRET=<32 caractères> \
+  -e DATABASE_URL='mysql://tnb:tnb@database:3306/tnb?serverVersion=8.0.36&charset=utf8mb4' \
+  -e DEFAULT_URI=http://localhost:8100 tnb:prod
+```
 
 ---
 
