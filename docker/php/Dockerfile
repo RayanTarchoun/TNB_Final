@@ -27,7 +27,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Controle de sante interroge par Docker : l'application est consideree
 # saine si /sante repond, ce qui inclut la joignabilite de la base.
-HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+#
+# Le delai est volontairement large : en developpement, le code est monte
+# depuis l'hote et Symfony tourne en mode debug, ce qui porte le temps de
+# reponse a plusieurs secondes. L'image de production, elle, repond en
+# quelques dizaines de millisecondes (code embarque + opcache preload).
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -fsS http://localhost/sante || exit 1
 
 # Extensions exigees par Symfony et Doctrine

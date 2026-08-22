@@ -10,6 +10,9 @@ parameters:
     app.marche.jours: '%env(MARCHE_JOURS)%'
     app.marche.horaires: '%env(MARCHE_HORAIRES)%'
     app.marche.telephone: '%env(MARCHE_TELEPHONE)%'
+    # Vide sur l'offre gratuite. Jamais codee en dur : uniquement lue depuis
+    # l'environnement (CDC technique, "API externe").
+    app.meteo.cle: '%env(METEO_API_CLE)%'
     # Seuil en dessous duquel un stock est signale comme "bas" dans le back-office
     app.stock.seuil_alerte: 5
 
@@ -35,3 +38,4 @@ services:
     App\Service\MeteoMarcheService:
         arguments:
             $meteoClient: '@meteo.client'
+            $meteoApiCle: '%app.meteo.cle%'

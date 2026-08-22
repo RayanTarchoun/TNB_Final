@@ -7,6 +7,14 @@
 # Demarrage :  docker compose up -d --build
 # Application : http://localhost:8080
 # phpMyAdmin  : http://localhost:8081
+#
+# Les ports publies sont surchargeables sans modifier ce fichier : Docker
+# Compose lit le .env du projet. C'est utile lorsqu'un serveur MySQL local
+# occupe deja 3306/3307, ou qu'un autre service tient le port 8080.
+#
+#   TNB_PORT_APP=8000
+#   TNB_PORT_PHPMYADMIN=8081
+#   TNB_PORT_DB=3308
 # ---------------------------------------------------------------------------
 
 services:
@@ -20,7 +28,7 @@ services:
             database:
                 condition: service_healthy
         ports:
-            - '8080:80'
+            - '${TNB_PORT_APP:-8080}:80'
         volumes:
             # Le code est monte en volume : toute modification est visible
             # immediatement, sans reconstruire l'image.
@@ -38,9 +46,12 @@ services:
         healthcheck:
             test: ['CMD', 'curl', '-fsS', 'http://localhost/sante']
             interval: 30s
-            timeout: 5s
-            retries: 3
-            start_period: 40s
+            # Genereux a dessein : en developpement le code est monte depuis
+            # l'hote et Symfony tourne en mode debug. Sur un montage Windows,
+            # une requete met couramment 5 a 7 secondes.
+            timeout: 20s
+            retries: 5
+            start_period: 90s
         networks:
             - tnb
 
@@ -58,7 +69,7 @@ services:
             - tnb_database:/var/lib/mysql
         ports:
             # Expose pour un client SQL local ; retirer cette ligne en production.
-            - '3307:3306'
+            - '${TNB_PORT_DB:-3307}:3306'
         healthcheck:
             # "app" n'est demarre qu'une fois MySQL reellement pret a repondre.
             test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-proot']
@@ -76,7 +87,7 @@ services:
             database:
                 condition: service_healthy
         ports:
-            - '8081:80'
+            - '${TNB_PORT_PHPMYADMIN:-8081}:80'
         environment:
             PMA_HOST: database
             PMA_USER: tnb

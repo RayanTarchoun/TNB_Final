@@ -33,6 +33,14 @@ class MeteoMarcheService
         private readonly LoggerInterface $logger,
         private readonly float $marcheLatitude,
         private readonly float $marcheLongitude,
+        /**
+         * Cle d'API, vide sur l'offre gratuite d'Open-Meteo.
+         *
+         * Elle provient exclusivement de la variable d'environnement
+         * METEO_API_CLE : aucune cle n'est ecrite dans le code ni versionnee
+         * (exigence "API externe" du CDC technique).
+         */
+        private readonly string $meteoApiCle = '',
     ) {
     }
 
@@ -58,9 +66,10 @@ class MeteoMarcheService
 
             return $previsions;
         } catch (\Throwable $exception) {
+            // Les exceptions du client HTTP citent l'URL appelee, cle d'API
+            // comprise : elle est masquee avant tout passage dans les logs.
             $this->logger->warning('Meteo du marche indisponible : {message}', [
-                'message' => $exception->getMessage(),
-                'exception' => $exception,
+                'message' => $this->masquerLaCle($exception->getMessage()),
             ]);
 
             return [];
@@ -76,21 +85,40 @@ class MeteoMarcheService
     }
 
     /**
+     * Remplace la cle d'API par des asterisques dans un texte destine aux
+     * logs, pour qu'elle ne se retrouve jamais dans un fichier de trace.
+     */
+    private function masquerLaCle(string $texte): string
+    {
+        if ('' === $this->meteoApiCle) {
+            return $texte;
+        }
+
+        return str_replace($this->meteoApiCle, '***', $texte);
+    }
+
+    /**
      * @return list<PrevisionMeteo>
      *
      * @throws HttpExceptionInterface
      */
     private function interroger(int $nombreDeJours): array
     {
-        $reponse = $this->meteoClient->request('GET', '', [
-            'query' => [
-                'latitude' => $this->marcheLatitude,
-                'longitude' => $this->marcheLongitude,
-                'daily' => 'weather_code,temperature_2m_max,temperature_2m_min',
-                'timezone' => 'Europe/Paris',
-                'forecast_days' => $nombreDeJours,
-            ],
-        ]);
+        $parametres = [
+            'latitude' => $this->marcheLatitude,
+            'longitude' => $this->marcheLongitude,
+            'daily' => 'weather_code,temperature_2m_max,temperature_2m_min',
+            'timezone' => 'Europe/Paris',
+            'forecast_days' => $nombreDeJours,
+        ];
+
+        // L'offre gratuite ne demande aucune cle : le parametre n'est ajoute
+        // que si METEO_API_CLE est renseignee.
+        if ('' !== $this->meteoApiCle) {
+            $parametres['apikey'] = $this->meteoApiCle;
+        }
+
+        $reponse = $this->meteoClient->request('GET', '', ['query' => $parametres]);
 
         /** @var array{daily?: array{time?: list<string>, weather_code?: list<int>, temperature_2m_max?: list<float>, temperature_2m_min?: list<float>}} $donnees */
         $donnees = $reponse->toArray();

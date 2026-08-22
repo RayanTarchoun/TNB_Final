@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Service;
 
 use App\Model\PrevisionMeteo;
 use App\Service\MeteoMarcheService;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -24,6 +25,7 @@ use Symfony\Component\HttpClient\Response\MockResponse;
  */
 #[CoversClass(MeteoMarcheService::class)]
 #[CoversClass(PrevisionMeteo::class)]
+#[AllowMockObjectsWithoutExpectations]
 class MeteoMarcheServiceTest extends TestCase
 {
     private const LATITUDE = 48.8566;
@@ -51,14 +53,18 @@ class MeteoMarcheServiceTest extends TestCase
     /**
      * @param list<MockResponse>|callable $reponses
      */
-    private function creerService(array|callable $reponses, ?LoggerInterface $logger = null): MeteoMarcheService
-    {
+    private function creerService(
+        array|callable $reponses,
+        ?LoggerInterface $logger = null,
+        string $cleApi = '',
+    ): MeteoMarcheService {
         return new MeteoMarcheService(
             new MockHttpClient($reponses, 'https://api.open-meteo.com/v1/forecast'),
             new ArrayAdapter(),
             $logger ?? new NullLogger(),
             self::LATITUDE,
             self::LONGITUDE,
+            $cleApi,
         );
     }
 
@@ -264,5 +270,117 @@ class MeteoMarcheServiceTest extends TestCase
 
         self::assertSame(14, $prevision->temperatureMinArrondie());
         self::assertSame(27, $prevision->temperatureMaxArrondie());
+    }
+
+    // ----- Gestion de la cle d'API -----
+
+    /**
+     * Le CDC technique exige que les cles d'API soient configurees par
+     * variable d'environnement et jamais codees en dur. Le service ne
+     * connait la cle que par injection.
+     */
+    public function testAucuneCleNestTransmiseSurLOffreGratuite(): void
+    {
+        $url = null;
+
+        $service = $this->creerService(
+            function (string $_methode, string $appelee) use (&$url): MockResponse {
+                $url = $appelee;
+
+                return new MockResponse($this->reponseApi(1));
+            },
+            cleApi: ''
+        );
+
+        $service->previsions(1);
+
+        self::assertIsString($url);
+        self::assertStringNotContainsString('apikey', $url);
+    }
+
+    public function testLaCleEstTransmiseQuandElleEstConfiguree(): void
+    {
+        $url = null;
+
+        $service = $this->creerService(
+            function (string $_methode, string $appelee) use (&$url): MockResponse {
+                $url = $appelee;
+
+                return new MockResponse($this->reponseApi(1));
+            },
+            cleApi: 'cle-secrete-123'
+        );
+
+        $service->previsions(1);
+
+        self::assertIsString($url);
+        self::assertStringContainsString('apikey=cle-secrete-123', $url);
+    }
+
+    /**
+     * Piege classique : les exceptions du client HTTP citent l'URL appelee,
+     * cle comprise. Sans masquage, la cle finirait en clair dans les logs.
+     */
+    public function testLaCleNapparaitJamaisDansLesLogs(): void
+    {
+        $messages = [];
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->method('warning')->willReturnCallback(
+            static function (string|\Stringable $message, array $contexte = []) use (&$messages): void {
+                $messages[] = (string) $message.' '.json_encode($contexte);
+            }
+        );
+
+        $service = $this->creerService(
+            [new MockResponse('', ['http_code' => 500])],
+            $logger,
+            cleApi: 'cle-secrete-123'
+        );
+
+        $service->previsions();
+
+        self::assertNotEmpty($messages, 'Un avertissement doit etre journalise.');
+
+        foreach ($messages as $message) {
+            self::assertStringNotContainsString('cle-secrete-123', $message);
+            self::assertStringContainsString('***', $message);
+        }
+    }
+
+    /**
+     * Le masquage ne doit pas alterer les messages quand aucune cle n'est
+     * configuree.
+     */
+    public function testLeMessageResteIntactSansCle(): void
+    {
+        $messages = [];
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->method('warning')->willReturnCallback(
+            static function (string|\Stringable $message, array $contexte = []) use (&$messages): void {
+                $messages[] = json_encode($contexte);
+            }
+        );
+
+        $this->creerService([new MockResponse('', ['http_code' => 500])], $logger)->previsions();
+
+        self::assertNotEmpty($messages);
+        self::assertStringNotContainsString('***', (string) $messages[0]);
+    }
+
+    /**
+     * Aucune cle ne doit etre ecrite dans un fichier versionne : .env ne
+     * porte que la variable vide.
+     */
+    public function testAucuneCleNestVersionneeDansEnv(): void
+    {
+        $env = (string) file_get_contents(\dirname(__DIR__, 3).'/.env');
+
+        self::assertMatchesRegularExpression(
+            '/^METEO_API_CLE=\s*$/m',
+            $env,
+            'METEO_API_CLE doit rester vide dans le fichier .env versionne.'
+        );
     }
 }
