@@ -30,6 +30,13 @@ phpstan.neon
 /.phpunit.cache/
 ###< phpunit/phpunit ###
 
+###> symfony/panther ###
+# Pilotes de navigateur : binaires propres a chaque OS, reinstallables par
+# "vendor/bin/bdi detect drivers". Ils n'ont pas leur place dans le depot.
+/drivers/
+/var/error-screenshots/
+###< symfony/panther ###
+
 ###> outils ###
 .idea/
 .vscode/

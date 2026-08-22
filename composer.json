@@ -72,6 +72,8 @@
         "test": "php bin/phpunit --no-coverage",
         "test:unit": "php bin/phpunit tests/Unit --no-coverage",
         "test:fonctionnel": "php bin/phpunit tests/Functional --no-coverage",
+        "test:navigateur": "php bin/phpunit tests/Panther --no-coverage",
+        "pilotes": "bdi detect drivers",
         "couverture": "php -d xdebug.mode=coverage bin/phpunit --coverage-text --coverage-html var/couverture",
         "stan": "phpstan analyse --no-progress --memory-limit=1G",
         "style": "php-cs-fixer fix",
@@ -88,7 +90,9 @@
         ]
     },
     "scripts-descriptions": {
-        "test": "Lance toute la suite de tests (unitaires + fonctionnels).",
+        "test": "Lance toute la suite de tests (unitaires, fonctionnels, navigateur).",
+        "test:navigateur": "Tests d'interface dans un vrai Chrome (Panther).",
+        "pilotes": "Telecharge le chromedriver correspondant au navigateur installe.",
         "stan": "Analyse statique PHPStan niveau 6.",
         "style": "Applique les normes PSR-12 (PHP CS Fixer).",
         "qualite": "Rejoue localement les controles de la pipeline CI.",
@@ -104,6 +108,7 @@
         }
     },
     "require-dev": {
+        "dbrekelmans/bdi": "^1.4",
         "doctrine/doctrine-fixtures-bundle": "^4.3",
         "friendsofphp/php-cs-fixer": "^3.95",
         "phpstan/phpstan": "^2.2",
@@ -114,6 +119,7 @@
         "symfony/css-selector": "6.4.*",
         "symfony/debug-bundle": "6.4.*",
         "symfony/maker-bundle": "^1.67",
+        "symfony/panther": "^2.4",
         "symfony/stopwatch": "6.4.*",
         "symfony/web-profiler-bundle": "6.4.*"
     }

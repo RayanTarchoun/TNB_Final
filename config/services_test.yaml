@@ -1,0 +1,19 @@
+# Surcharges de services propres a l'environnement de test.
+#
+# MicroKernelTrait importe automatiquement config/services_{env}.yaml apres
+# config/services.yaml : ce fichier n'a aucun effet en dev ni en production.
+
+services:
+    # Redeclarer un service remplace entierement sa definition : sans ce bloc
+    # _defaults, l'autowiring serait perdu et les dependances du constructeur
+    # ne seraient plus injectees.
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    # Les tests fonctionnels rechargent les fixtures avant chaque scenario et
+    # doivent donc recuperer ce service depuis le conteneur. Le declarer
+    # public ici evite de dependre du conteneur special de test, et rend
+    # l'intention verifiable par l'analyse statique.
+    App\DataFixtures\AppFixtures:
+        public: true
