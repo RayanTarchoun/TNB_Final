@@ -1,6 +1,6 @@
 # TNB — Tarchoun Fruits & Légumes
 
-![build](https://img.shields.io/badge/build-passing-brightgreen)
+[![CI](https://github.com/RayanTarchoun/TNB_Final/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/RayanTarchoun/TNB_Final/actions/workflows/ci.yml)
 ![PHP](https://img.shields.io/badge/PHP-8.4%2B-777bb4)
 ![Symfony](https://img.shields.io/badge/Symfony-6.4%20LTS-000000)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479a1)
