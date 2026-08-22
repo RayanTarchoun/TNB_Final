@@ -32,6 +32,12 @@ services:
             MAILER_DSN: ${MAILER_DSN:-null://null}
         volumes:
             - tnb_var:/var/www/html/var
+        healthcheck:
+            test: ['CMD', 'curl', '-fsS', 'http://localhost/sante']
+            interval: 30s
+            timeout: 5s
+            retries: 3
+            start_period: 40s
         networks:
             - tnb
 
