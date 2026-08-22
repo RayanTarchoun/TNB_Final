@@ -47,3 +47,9 @@ phpstan.neon
 Thumbs.db
 .DS_Store
 ###< outils ###
+
+###> captures (tools/capture-*.mjs) ###
+# puppeteer-core n'est utilise que pour produire les captures du dossier.
+/node_modules/
+/package-lock.json
+###< captures ###
