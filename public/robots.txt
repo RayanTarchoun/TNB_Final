@@ -1,0 +1,17 @@
+# Les pages publiques (accueil, catalogue, fiches produit) sont indexables :
+# elles font connaitre le commerce. Tout ce qui touche a un compte, a une
+# commande ou au back-office ne doit jamais remonter dans un moteur de
+# recherche.
+
+User-agent: *
+
+Disallow: /admin
+Disallow: /panier
+Disallow: /commande
+Disallow: /mes-commandes
+Disallow: /profil
+Disallow: /connexion
+Disallow: /inscription
+Disallow: /sante
+
+Allow: /
