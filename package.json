@@ -1,0 +1,13 @@
+{
+    "name": "tnb-captures",
+    "private": true,
+    "type": "module",
+    "description": "Outillage de capture des ecrans et des sorties de tests pour le dossier de projet TNB. L'application elle-meme est en PHP et ne depend pas de npm.",
+    "scripts": {
+        "captures": "node tools/capture-ecrans.mjs",
+        "captures:sorties": "node tools/capture-sorties.mjs"
+    },
+    "devDependencies": {
+        "puppeteer-core": "^25.8.0"
+    }
+}
