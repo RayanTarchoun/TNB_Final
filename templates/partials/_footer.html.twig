@@ -1,0 +1,43 @@
+<footer class="tnb-footer tnb-sans-impression">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <h2>Tarchoun Fruits &amp; Legumes</h2>
+                <p class="mb-0 small">
+                    Entreprise familiale specialisee dans la vente de fruits et legumes
+                    frais sur les marches. Qualite, fraicheur et proximite.
+                </p>
+            </div>
+
+            <div class="col-md-4">
+                <h2>Infos pratiques</h2>
+                <ul class="list-unstyled small mb-0">
+                    <li>Jours de marche : {{ marche_jours }}</li>
+                    <li>Horaires : {{ marche_horaires }}</li>
+                    <li>Lieu : {{ marche_lieu }}</li>
+                    <li>Tel : <a href="tel:{{ marche_telephone|replace({' ': ''}) }}">{{ marche_telephone }}</a></li>
+                    <li>Email : <a href="mailto:{{ mail_contact }}">{{ mail_contact }}</a></li>
+                </ul>
+            </div>
+
+            <div class="col-md-4">
+                <h2>Informations</h2>
+                <ul class="list-unstyled small mb-0">
+                    <li><a href="{{ path('app_mentions_legales') }}">Mentions legales</a></li>
+                    <li><a href="{{ path('app_confidentialite') }}">Politique de confidentialite</a></li>
+                    <li><a href="{{ path('app_produit_index') }}">Catalogue</a></li>
+                </ul>
+                <p class="small mt-3 mb-0">
+                    Paiement et retrait sur le marche : aucun paiement en ligne.
+                </p>
+            </div>
+        </div>
+
+        <div class="tnb-footer-bas d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <span>Tarchoun Fruits &amp; Legumes — Tous droits reserves {{ 'now'|date('Y') }}</span>
+            <span class="tnb-drapeau" role="img" aria-label="Produits francais">
+                <span></span><span></span><span></span>
+            </span>
+        </div>
+    </div>
+</footer>

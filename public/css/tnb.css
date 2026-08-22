@@ -1,0 +1,784 @@
+/* ==========================================================================
+   TNB - Tarchoun Fruits & Legumes
+   Charte graphique du Jalon 2 (section 2), appliquee par-dessus Bootstrap 5.
+
+   Note d'accessibilite : les teintes de marque (#E8741E, #2D8C3C, #ED2939)
+   sont conservees pour les grandes surfaces et les bordures. Partout ou une
+   couleur porte du texte, une variante assombrie est utilisee afin
+   d'atteindre le ratio de contraste 4.5:1 exige par le WCAG AA (Jalon 2, 5.3).
+   ========================================================================== */
+
+:root {
+    /* Couleurs de marque, issues du logo */
+    --tnb-orange: #e8741e;
+    --tnb-vert: #2d8c3c;
+    --tnb-noir: #2c2c2c;
+    --tnb-jaune: #f5c518;
+    --tnb-bleu: #002395;
+    --tnb-rouge: #ed2939;
+    --tnb-creme: #fff8f0;
+    --tnb-texte: #1a1a1a;
+
+    /* Variantes accessibles (texte et fonds porteurs de texte) */
+    --tnb-orange-action: #b45309;
+    --tnb-orange-texte: #96430a;
+    --tnb-vert-action: #1f7a32;
+    --tnb-rouge-action: #c41f2c;
+    --tnb-jaune-texte: #3d3000;
+
+    /* Neutres */
+    --tnb-gris-bordure: #e6ddd2;
+    --tnb-gris-texte: #5c5349;
+    --tnb-blanc: #ffffff;
+
+    /* Formes */
+    --tnb-radius: 12px;
+    --tnb-radius-sm: 8px;
+    --tnb-ombre: 0 2px 8px rgb(0 0 0 / 8%);
+    --tnb-ombre-forte: 0 6px 18px rgb(0 0 0 / 12%);
+
+    /* Typographies (Jalon 2, 2.3) */
+    --tnb-titre: "Poppins", "Segoe UI", "Trebuchet MS", system-ui, sans-serif;
+    --tnb-corps: "Open Sans", "Segoe UI", Roboto, system-ui, sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+
+body {
+    background-color: var(--tnb-creme);
+    color: var(--tnb-texte);
+    font-family: var(--tnb-corps);
+    font-size: 16px;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+h1, h2, h3, h4, h5, h6,
+.tnb-titre {
+    font-family: var(--tnb-titre);
+    font-weight: 700;
+    color: var(--tnb-texte);
+}
+
+h1 { font-size: clamp(1.6rem, 4vw, 2rem); }
+h2 { font-size: clamp(1.3rem, 3vw, 1.5rem); font-weight: 600; }
+h3 { font-size: 1.2rem; font-weight: 600; }
+
+a {
+    color: var(--tnb-orange-texte);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+}
+
+a:hover {
+    color: var(--tnb-orange-action);
+}
+
+/* Indicateur de focus visible sur tous les elements interactifs (WCAG AA) */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid var(--tnb-bleu);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Lien d'evitement, revele au premier Tab */
+.tnb-lien-evitement {
+    position: absolute;
+    left: -999px;
+    top: 0;
+    z-index: 1080;
+    background: var(--tnb-bleu);
+    color: #fff;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0 0 var(--tnb-radius-sm) 0;
+}
+
+.tnb-lien-evitement:focus {
+    left: 0;
+    color: #fff;
+}
+
+/* --------------------------------------------------------------------------
+   En-tete et navigation
+   -------------------------------------------------------------------------- */
+
+.tnb-header {
+    background-color: var(--tnb-noir);
+    box-shadow: var(--tnb-ombre);
+}
+
+.tnb-logo {
+    font-family: var(--tnb-titre);
+    font-weight: 700;
+    font-size: 1.4rem;
+    letter-spacing: 0.04em;
+    color: var(--tnb-orange);
+    line-height: 1.1;
+}
+
+.tnb-logo:hover {
+    color: var(--tnb-orange);
+}
+
+.tnb-logo small {
+    display: block;
+    font-family: var(--tnb-corps);
+    font-size: 0.68rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: #d8d2ca;
+}
+
+.tnb-header .nav-link {
+    font-family: var(--tnb-titre);
+    font-weight: 500;
+    color: #f2ede7;
+    /* Zone tactile de 44px minimum (Jalon 2, 5.3) */
+    padding: 0.65rem 0.9rem;
+    border-radius: var(--tnb-radius-sm);
+}
+
+.tnb-header .nav-link:hover,
+.tnb-header .nav-link:focus {
+    color: #fff;
+    background-color: rgb(255 255 255 / 10%);
+}
+
+.tnb-header .nav-link.actif {
+    color: #fff;
+    box-shadow: inset 0 -3px 0 var(--tnb-orange);
+}
+
+.tnb-badge-panier {
+    background-color: var(--tnb-orange-action);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 0.15rem 0.45rem;
+    min-width: 1.35rem;
+    display: inline-block;
+    text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   Boutons
+   -------------------------------------------------------------------------- */
+
+.btn {
+    font-family: var(--tnb-titre);
+    font-weight: 500;
+    border-radius: var(--tnb-radius-sm);
+    padding: 0.55rem 1.1rem;
+    min-height: 44px;
+}
+
+.btn-tnb {
+    background-color: var(--tnb-orange-action);
+    border-color: var(--tnb-orange-action);
+    color: #fff;
+}
+
+.btn-tnb:hover,
+.btn-tnb:focus {
+    background-color: #91420a;
+    border-color: #91420a;
+    color: #fff;
+}
+
+.btn-tnb-secondaire {
+    background-color: transparent;
+    border: 2px solid var(--tnb-orange-action);
+    color: var(--tnb-orange-texte);
+}
+
+.btn-tnb-secondaire:hover,
+.btn-tnb-secondaire:focus {
+    background-color: var(--tnb-orange-action);
+    color: #fff;
+}
+
+.btn-tnb-vert {
+    background-color: var(--tnb-vert-action);
+    border-color: var(--tnb-vert-action);
+    color: #fff;
+}
+
+.btn-tnb-vert:hover,
+.btn-tnb-vert:focus {
+    background-color: #175c26;
+    border-color: #175c26;
+    color: #fff;
+}
+
+.btn-sm {
+    min-height: 38px;
+    padding: 0.35rem 0.75rem;
+}
+
+/* --------------------------------------------------------------------------
+   Cartes produit
+   -------------------------------------------------------------------------- */
+
+.tnb-carte {
+    background-color: var(--tnb-blanc);
+    border: 1px solid var(--tnb-gris-bordure);
+    border-radius: var(--tnb-radius);
+    box-shadow: var(--tnb-ombre);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tnb-carte:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--tnb-ombre-forte);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tnb-carte,
+    .tnb-carte:hover {
+        transition: none;
+        transform: none;
+    }
+}
+
+/* Vignette : image du produit ou, a defaut, monogramme colore */
+.tnb-vignette {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    background: linear-gradient(135deg, #f6e3cf, #efd3b4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.tnb-vignette img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.tnb-vignette-lettre {
+    font-family: var(--tnb-titre);
+    font-weight: 700;
+    font-size: 3.5rem;
+    color: rgb(150 67 10 / 45%);
+    user-select: none;
+}
+
+.tnb-vignette-legume {
+    background: linear-gradient(135deg, #dcefdd, #c3e2c6);
+}
+
+.tnb-vignette-legume .tnb-vignette-lettre {
+    color: rgb(31 122 50 / 45%);
+}
+
+.tnb-carte-corps {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 auto;
+    gap: 0.35rem;
+}
+
+.tnb-carte-nom {
+    font-family: var(--tnb-titre);
+    font-weight: 600;
+    font-size: 1.02rem;
+    margin: 0;
+}
+
+.tnb-carte-nom a {
+    color: var(--tnb-texte);
+    text-decoration: none;
+}
+
+.tnb-carte-nom a:hover {
+    color: var(--tnb-orange-texte);
+    text-decoration: underline;
+}
+
+.tnb-prix {
+    font-family: var(--tnb-titre);
+    font-weight: 700;
+    font-size: 1.35rem;
+    color: var(--tnb-orange-texte);
+    line-height: 1.2;
+}
+
+.tnb-prix-unite {
+    font-family: var(--tnb-corps);
+    font-size: 0.82rem;
+    font-weight: 400;
+    color: var(--tnb-gris-texte);
+}
+
+.tnb-origine {
+    font-size: 0.82rem;
+    color: var(--tnb-gris-texte);
+}
+
+/* --------------------------------------------------------------------------
+   Badges
+   -------------------------------------------------------------------------- */
+
+.tnb-badge {
+    display: inline-block;
+    font-family: var(--tnb-titre);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    color: #fff;
+}
+
+.badge-fruit { background-color: var(--tnb-orange-action); }
+.badge-legume { background-color: var(--tnb-vert-action); }
+
+.tnb-badge-categorie {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 25%);
+}
+
+/* Statuts de commande (Jalon 2, 2.2) */
+.badge-statut-attente {
+    background-color: var(--tnb-jaune);
+    color: var(--tnb-jaune-texte);
+}
+
+.badge-statut-preparee { background-color: var(--tnb-bleu); }
+.badge-statut-recuperee { background-color: var(--tnb-vert-action); }
+.badge-statut-annulee { background-color: var(--tnb-rouge-action); }
+
+/* Indication de stock */
+.tnb-stock {
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.tnb-stock-ok { color: var(--tnb-vert-action); }
+.tnb-stock-bas { color: var(--tnb-orange-texte); }
+.tnb-stock-epuise { color: var(--tnb-rouge-action); }
+
+/* --------------------------------------------------------------------------
+   Blocs et sections
+   -------------------------------------------------------------------------- */
+
+.tnb-hero {
+    background: linear-gradient(135deg, #1b2a63, #002395);
+    color: #fff;
+    border-radius: var(--tnb-radius);
+    padding: clamp(2rem, 6vw, 3.5rem) clamp(1.25rem, 5vw, 3rem);
+    text-align: center;
+}
+
+.tnb-hero h1 {
+    color: #fff;
+    font-size: clamp(1.6rem, 4.5vw, 2.4rem);
+    margin-bottom: 0.75rem;
+}
+
+.tnb-hero p {
+    color: #e4e8f5;
+    margin-bottom: 1.5rem;
+}
+
+.tnb-section-titre {
+    font-family: var(--tnb-titre);
+    font-weight: 600;
+    font-size: 1.35rem;
+    display: inline-block;
+    padding-bottom: 0.35rem;
+    border-bottom: 3px solid var(--tnb-orange);
+    margin-bottom: 1.25rem;
+}
+
+.tnb-bloc {
+    background-color: var(--tnb-blanc);
+    border: 1px solid var(--tnb-gris-bordure);
+    border-radius: var(--tnb-radius);
+    box-shadow: var(--tnb-ombre);
+    padding: 1.5rem;
+}
+
+.tnb-bloc-accent {
+    background-color: #fdf1e3;
+    border-color: #f0d9be;
+}
+
+/* Sidebar de filtres du catalogue */
+.tnb-filtres {
+    background-color: var(--tnb-blanc);
+    border: 1px solid var(--tnb-gris-bordure);
+    border-radius: var(--tnb-radius);
+    padding: 1.25rem;
+    box-shadow: var(--tnb-ombre);
+}
+
+.tnb-filtres legend,
+.tnb-filtres .tnb-filtres-titre {
+    font-family: var(--tnb-titre);
+    font-weight: 600;
+    font-size: 0.95rem;
+    float: none;
+    width: auto;
+    margin-bottom: 0.5rem;
+}
+
+/* --------------------------------------------------------------------------
+   Tableaux
+   -------------------------------------------------------------------------- */
+
+.tnb-tableau {
+    background-color: var(--tnb-blanc);
+    border-radius: var(--tnb-radius);
+    overflow: hidden;
+    box-shadow: var(--tnb-ombre);
+    border: 1px solid var(--tnb-gris-bordure);
+}
+
+.tnb-tableau table {
+    margin-bottom: 0;
+}
+
+.tnb-tableau thead th {
+    background-color: var(--tnb-noir);
+    color: #fff;
+    font-family: var(--tnb-titre);
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    border: 0;
+    white-space: nowrap;
+}
+
+.tnb-tableau tbody td {
+    vertical-align: middle;
+    border-color: var(--tnb-gris-bordure);
+}
+
+/* Les tableaux larges defilent dans leur propre conteneur */
+.tnb-tableau-scroll {
+    overflow-x: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Indicateurs du tableau de bord
+   -------------------------------------------------------------------------- */
+
+.tnb-indicateur {
+    background-color: var(--tnb-blanc);
+    border: 1px solid var(--tnb-gris-bordure);
+    border-left: 4px solid var(--tnb-orange);
+    border-radius: var(--tnb-radius);
+    box-shadow: var(--tnb-ombre);
+    padding: 1.1rem 1.25rem;
+    height: 100%;
+}
+
+.tnb-indicateur-vert { border-left-color: var(--tnb-vert); }
+.tnb-indicateur-bleu { border-left-color: var(--tnb-bleu); }
+.tnb-indicateur-rouge { border-left-color: var(--tnb-rouge); }
+
+.tnb-indicateur-valeur {
+    font-family: var(--tnb-titre);
+    font-weight: 700;
+    font-size: 1.9rem;
+    line-height: 1.1;
+}
+
+.tnb-indicateur-libelle {
+    font-size: 0.85rem;
+    color: var(--tnb-gris-texte);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* --------------------------------------------------------------------------
+   Back-office
+   -------------------------------------------------------------------------- */
+
+.tnb-admin-sidebar {
+    background-color: var(--tnb-noir);
+    border-radius: var(--tnb-radius);
+    padding: 1rem 0.75rem;
+    position: sticky;
+    top: 1rem;
+}
+
+.tnb-admin-sidebar .nav-link {
+    color: #ddd6cd;
+    font-family: var(--tnb-titre);
+    font-weight: 500;
+    border-radius: var(--tnb-radius-sm);
+    padding: 0.6rem 0.85rem;
+    margin-bottom: 0.2rem;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tnb-admin-sidebar .nav-link:hover {
+    background-color: rgb(255 255 255 / 10%);
+    color: #fff;
+}
+
+.tnb-admin-sidebar .nav-link.actif {
+    background-color: var(--tnb-orange-action);
+    color: #fff;
+}
+
+/* Barre de progression du stock */
+.tnb-jauge {
+    height: 8px;
+    background-color: #eee6dc;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.tnb-jauge-remplissage {
+    height: 100%;
+    background-color: var(--tnb-vert-action);
+    border-radius: 999px;
+}
+
+.tnb-jauge-remplissage.bas { background-color: var(--tnb-orange-action); }
+.tnb-jauge-remplissage.epuise { background-color: var(--tnb-rouge-action); }
+
+/* --------------------------------------------------------------------------
+   Formulaires
+   -------------------------------------------------------------------------- */
+
+.form-label {
+    font-family: var(--tnb-titre);
+    font-weight: 500;
+    font-size: 0.92rem;
+}
+
+.form-control,
+.form-select {
+    border-radius: var(--tnb-radius-sm);
+    border-color: var(--tnb-gris-bordure);
+    min-height: 44px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--tnb-orange);
+    box-shadow: 0 0 0 0.2rem rgb(232 116 30 / 20%);
+}
+
+.form-text {
+    color: var(--tnb-gris-texte);
+    font-size: 0.85rem;
+}
+
+.invalid-feedback,
+.form-error-message {
+    color: var(--tnb-rouge-action);
+    font-size: 0.86rem;
+    font-weight: 600;
+    display: block;
+}
+
+ul.form-error-message {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+/* Selecteur de quantite du panier */
+.tnb-quantite {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.tnb-quantite input {
+    width: 5.5rem;
+    text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   Alertes
+   -------------------------------------------------------------------------- */
+
+.alert {
+    border-radius: var(--tnb-radius-sm);
+    border-width: 0 0 0 4px;
+    font-weight: 500;
+}
+
+.alert-success {
+    background-color: #e7f4e9;
+    border-color: var(--tnb-vert-action);
+    color: #17551f;
+}
+
+.alert-danger {
+    background-color: #fdeaec;
+    border-color: var(--tnb-rouge-action);
+    color: #8d1620;
+}
+
+.alert-warning {
+    background-color: #fdf4dd;
+    border-color: var(--tnb-jaune);
+    color: var(--tnb-jaune-texte);
+}
+
+.alert-info {
+    background-color: #e7ecf7;
+    border-color: var(--tnb-bleu);
+    color: #001b6e;
+}
+
+/* --------------------------------------------------------------------------
+   Pied de page
+   -------------------------------------------------------------------------- */
+
+.tnb-footer {
+    background-color: var(--tnb-noir);
+    color: #ddd6cd;
+    margin-top: 3rem;
+    padding: 2.5rem 0 1.5rem;
+    flex-shrink: 0;
+}
+
+.tnb-footer h2 {
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.tnb-footer a {
+    color: #f0e9e1;
+    text-decoration: none;
+}
+
+.tnb-footer a:hover,
+.tnb-footer a:focus {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.tnb-footer-bas {
+    border-top: 1px solid rgb(255 255 255 / 15%);
+    margin-top: 1.75rem;
+    padding-top: 1rem;
+    font-size: 0.85rem;
+    color: #c8c1b8;
+}
+
+.tnb-drapeau {
+    display: inline-flex;
+    height: 0.9rem;
+    width: 1.35rem;
+    border-radius: 2px;
+    overflow: hidden;
+    vertical-align: -1px;
+}
+
+.tnb-drapeau span { flex: 1; }
+.tnb-drapeau span:nth-child(1) { background: var(--tnb-bleu); }
+.tnb-drapeau span:nth-child(2) { background: #fff; }
+.tnb-drapeau span:nth-child(3) { background: var(--tnb-rouge); }
+
+/* --------------------------------------------------------------------------
+   Utilitaires
+   -------------------------------------------------------------------------- */
+
+.tnb-total {
+    font-family: var(--tnb-titre);
+    font-weight: 700;
+    font-size: 1.6rem;
+    color: var(--tnb-orange-texte);
+}
+
+.tnb-etapes {
+    counter-reset: etape;
+    list-style: none;
+    padding-left: 0;
+}
+
+.tnb-etapes li {
+    counter-increment: etape;
+    position: relative;
+    padding-left: 2.5rem;
+    margin-bottom: 0.85rem;
+}
+
+.tnb-etapes li::before {
+    content: counter(etape);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background-color: var(--tnb-orange-action);
+    color: #fff;
+    font-family: var(--tnb-titre);
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tnb-vide {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--tnb-gris-texte);
+}
+
+.tnb-vide-pictogramme {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+/* Barre d'action collante sur mobile (Jalon 2, 3.5) */
+@media (max-width: 767.98px) {
+    .tnb-action-collante {
+        position: sticky;
+        bottom: 0;
+        background-color: var(--tnb-creme);
+        border-top: 1px solid var(--tnb-gris-bordure);
+        padding: 0.85rem 0;
+        margin: 0 -0.75rem;
+        padding-inline: 0.75rem;
+        z-index: 10;
+    }
+}
+
+@media print {
+    .tnb-header,
+    .tnb-footer,
+    .tnb-sans-impression {
+        display: none !important;
+    }
+}

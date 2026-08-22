@@ -1,0 +1,59 @@
+{# Carte produit reutilisee par l'accueil, le catalogue et les suggestions. #}
+{% set estLegume = produit.categorie and produit.categorie.classeBadge == 'badge-legume' %}
+{% set disponible = produit.estDisponible %}
+{% set quantiteRestante = produit.quantiteDisponible %}
+
+<article class="tnb-carte">
+    <div class="tnb-vignette {{ estLegume ? 'tnb-vignette-legume' }}">
+        {% if produit.imageUrl %}
+            <img src="{{ produit.imageUrl }}" alt="{{ produit.nom }}" loading="lazy">
+        {% else %}
+            {# Monogramme par defaut : evite une image manquante disgracieuse. #}
+            <span class="tnb-vignette-lettre" aria-hidden="true">{{ produit.nom|slice(0, 1)|upper }}</span>
+        {% endif %}
+
+        {% if produit.categorie %}
+            <span class="tnb-badge tnb-badge-categorie {{ produit.categorie.classeBadge }}">
+                {{ produit.categorie.nom }}
+            </span>
+        {% endif %}
+    </div>
+
+    <div class="tnb-carte-corps">
+        <h3 class="tnb-carte-nom">
+            <a href="{{ path('app_produit_show', {id: produit.id}) }}">{{ produit.nom }}</a>
+        </h3>
+
+        <p class="mb-0">
+            <span class="tnb-prix">{{ produit.prix|prix }}</span>
+            <span class="tnb-prix-unite">{{ produit.uniteVente.suffixePrix }}</span>
+        </p>
+
+        {% if produit.origine %}
+            <p class="tnb-origine mb-0">Origine : {{ produit.origine }}</p>
+        {% endif %}
+
+        <p class="tnb-stock mb-0">
+            {% if not disponible %}
+                <span class="tnb-stock-epuise">Epuise pour ce marche</span>
+            {% elseif quantiteRestante <= 3 %}
+                <span class="tnb-stock-bas">Plus que {{ quantiteRestante|quantite }} {{ produit.uniteVente.abreviation }} !</span>
+            {% else %}
+                <span class="tnb-stock-ok">{{ quantiteRestante|quantite }} {{ produit.uniteVente.abreviation }} disponibles</span>
+            {% endif %}
+        </p>
+
+        <form method="post" action="{{ path('app_panier_ajouter', {id: produit.id}) }}" class="mt-auto pt-2">
+            <input type="hidden" name="_token" value="{{ csrf_token('panier_ajouter' ~ produit.id) }}">
+            <input type="hidden" name="quantite" value="{{ produit.uniteVente.pasDeQuantite }}">
+            <button type="submit" class="btn btn-tnb w-100" {{ disponible ? '' : 'disabled' }}>
+                {% if disponible %}
+                    + Ajouter au panier
+                    <span class="visually-hidden">({{ produit.nom }})</span>
+                {% else %}
+                    Indisponible
+                {% endif %}
+            </button>
+        </form>
+    </div>
+</article>

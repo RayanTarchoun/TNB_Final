@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{% block description %}Commandez vos fruits et legumes a l'avance chez Tarchoun Fruits &amp; Legumes et recuperez-les sur le marche.{% endblock %}">
+    <title>{% block title %}TNB — Tarchoun Fruits &amp; Legumes{% endblock %}</title>
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍅</text></svg>">
+
+    {# Polices de la charte ; des piles systeme prennent le relais hors ligne. #}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Open+Sans:wght@400;600&display=swap">
+
+    <link rel="stylesheet" href="{{ asset('vendor/bootstrap/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/tnb.css') }}">
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+    <a class="tnb-lien-evitement" href="#contenu">Aller au contenu principal</a>
+
+    {% include 'partials/_header.html.twig' %}
+
+    <main id="contenu" class="py-4">
+        <div class="container">
+            {% include 'partials/_flash.html.twig' %}
+            {% block corps %}{% endblock %}
+        </div>
+    </main>
+
+    {% include 'partials/_footer.html.twig' %}
+
+    <script src="{{ asset('vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+    {% block javascripts %}{% endblock %}
+</body>
+</html>
