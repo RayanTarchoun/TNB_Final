@@ -1,0 +1,13 @@
+twig:
+    file_name_pattern: '*.twig'
+    form_themes: ['bootstrap_5_layout.html.twig']
+    globals:
+        marche_lieu: '%app.marche.lieu%'
+        marche_jours: '%app.marche.jours%'
+        marche_horaires: '%app.marche.horaires%'
+        marche_telephone: '%app.marche.telephone%'
+        mail_contact: '%app.mail.expediteur%'
+
+when@test:
+    twig:
+        strict_variables: true

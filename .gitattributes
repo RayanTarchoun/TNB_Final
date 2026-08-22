@@ -1,0 +1,35 @@
+# Normalisation des fins de ligne.
+#
+# Le projet est developpe sous Windows mais s'execute dans des conteneurs
+# Linux : sans cette normalisation, un fichier commite en CRLF casserait le
+# shebang de bin/console et les scripts shell de l'image Docker.
+* text=auto eol=lf
+
+# Fichiers dont les fins de ligne LF sont indispensables cote Linux
+bin/console        text eol=lf
+*.sh               text eol=lf
+Dockerfile         text eol=lf
+*.php              text eol=lf
+*.twig             text eol=lf
+*.yaml             text eol=lf
+*.yml              text eol=lf
+*.neon             text eol=lf
+*.ini              text eol=lf
+*.conf             text eol=lf
+
+# Fichiers binaires : aucune conversion
+*.png              binary
+*.jpg              binary
+*.jpeg             binary
+*.gif              binary
+*.ico              binary
+*.woff             binary
+*.woff2            binary
+*.ttf              binary
+*.pdf              binary
+
+# Fichiers exclus de l'archive "git archive" et des diffs de revue
+/.github           export-ignore
+/tests             export-ignore
+/.gitattributes    export-ignore
+/.gitignore        export-ignore

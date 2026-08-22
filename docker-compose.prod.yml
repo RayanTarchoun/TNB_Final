@@ -1,0 +1,64 @@
+# ---------------------------------------------------------------------------
+# Mise en production TNB.
+#
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# Differences avec l'environnement de developpement :
+#   - le code est embarque dans l'image (aucun volume sur le code) ;
+#   - APP_ENV=prod, debug desactive, opcache verrouille ;
+#   - les secrets proviennent d'un fichier .env.prod non versionne ;
+#   - la base n'est plus exposee sur l'hote, et phpMyAdmin n'est pas deploye.
+# ---------------------------------------------------------------------------
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+            target: prod
+        image: tnb:latest
+        restart: unless-stopped
+        depends_on:
+            database:
+                condition: service_healthy
+        ports:
+            - '80:80'
+        environment:
+            APP_ENV: prod
+            APP_DEBUG: '0'
+            APP_SECRET: ${APP_SECRET:?APP_SECRET est obligatoire}
+            DATABASE_URL: 'mysql://tnb:${MYSQL_PASSWORD:?mot de passe requis}@database:3306/tnb?serverVersion=8.0.36&charset=utf8mb4'
+            DEFAULT_URI: ${DEFAULT_URI:?URL publique requise}
+            MAILER_DSN: ${MAILER_DSN:-null://null}
+        volumes:
+            - tnb_var:/var/www/html/var
+        networks:
+            - tnb
+
+    database:
+        image: mysql:8.0
+        restart: unless-stopped
+        command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?mot de passe root requis}
+            MYSQL_DATABASE: tnb
+            MYSQL_USER: tnb
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD:?mot de passe requis}
+        volumes:
+            - tnb_database:/var/lib/mysql
+        healthcheck:
+            test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-p${MYSQL_ROOT_PASSWORD}']
+            interval: 10s
+            timeout: 5s
+            retries: 12
+            start_period: 30s
+        networks:
+            - tnb
+
+volumes:
+    tnb_database:
+    tnb_var:
+
+networks:
+    tnb:
+        driver: bridge

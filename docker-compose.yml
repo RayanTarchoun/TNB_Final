@@ -1,0 +1,88 @@
+# ---------------------------------------------------------------------------
+# Environnement de developpement TNB (architecture 3-tiers, figure 8.2).
+#
+#   navigateur  ->  conteneur "app" (Apache + PHP 8.2 + Symfony)
+#                       -> conteneur "database" (MySQL 8.0), reseau interne
+#
+# Demarrage :  docker compose up -d --build
+# Application : http://localhost:8080
+# phpMyAdmin  : http://localhost:8081
+# ---------------------------------------------------------------------------
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+            target: dev
+        container_name: tnb_app
+        depends_on:
+            database:
+                condition: service_healthy
+        ports:
+            - '8080:80'
+        volumes:
+            # Le code est monte en volume : toute modification est visible
+            # immediatement, sans reconstruire l'image.
+            - .:/var/www/html:cached
+            # Le cache et les logs restent dans le conteneur : bien plus
+            # rapide qu'a travers un volume monte depuis l'hote.
+            - tnb_var:/var/www/html/var
+        environment:
+            APP_ENV: dev
+            APP_DEBUG: '1'
+            # Le nom du service fait office de nom d'hote sur le reseau Docker.
+            DATABASE_URL: 'mysql://tnb:tnb@database:3306/tnb?serverVersion=8.0.36&charset=utf8mb4'
+            DEFAULT_URI: 'http://localhost:8080'
+            MAILER_DSN: 'null://null'
+        networks:
+            - tnb
+
+    database:
+        image: mysql:8.0
+        container_name: tnb_database
+        command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: tnb
+            MYSQL_USER: tnb
+            MYSQL_PASSWORD: tnb
+        volumes:
+            # Volume nomme : les donnees survivent a un "docker compose down".
+            - tnb_database:/var/lib/mysql
+        ports:
+            # Expose pour un client SQL local ; retirer cette ligne en production.
+            - '3307:3306'
+        healthcheck:
+            # "app" n'est demarre qu'une fois MySQL reellement pret a repondre.
+            test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-proot']
+            interval: 5s
+            timeout: 5s
+            retries: 20
+            start_period: 30s
+        networks:
+            - tnb
+
+    phpmyadmin:
+        image: phpmyadmin:5
+        container_name: tnb_phpmyadmin
+        depends_on:
+            database:
+                condition: service_healthy
+        ports:
+            - '8081:80'
+        environment:
+            PMA_HOST: database
+            PMA_USER: tnb
+            PMA_PASSWORD: tnb
+            UPLOAD_LIMIT: 64M
+        networks:
+            - tnb
+
+volumes:
+    tnb_database:
+    tnb_var:
+
+networks:
+    tnb:
+        driver: bridge

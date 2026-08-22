@@ -1,0 +1,26 @@
+# Fichiers inutiles a l'image : ils alourdiraient le contexte de build
+# et, pour les .env.local, feraient fuiter des secrets dans l'image.
+
+.git/
+.github/
+.idea/
+.vscode/
+
+var/
+vendor/
+node_modules/
+
+.env.local
+.env.*.local
+.env.test
+.env.prod
+
+.phpunit.cache/
+.php-cs-fixer.cache
+phpunit.xml
+phpstan.neon
+
+docker-compose*.yml
+Dockerfile
+*.md
+!README.md

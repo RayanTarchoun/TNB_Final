@@ -1,0 +1,37 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+parameters:
+    app.mail.expediteur: '%env(MAIL_EXPEDITEUR)%'
+    app.mail.expediteur_nom: '%env(MAIL_EXPEDITEUR_NOM)%'
+    app.marche.latitude: '%env(float:MARCHE_LATITUDE)%'
+    app.marche.longitude: '%env(float:MARCHE_LONGITUDE)%'
+    app.marche.lieu: '%env(MARCHE_LIEU)%'
+    app.marche.jours: '%env(MARCHE_JOURS)%'
+    app.marche.horaires: '%env(MARCHE_HORAIRES)%'
+    app.marche.telephone: '%env(MARCHE_TELEPHONE)%'
+    # Seuil en dessous duquel un stock est signale comme "bas" dans le back-office
+    app.stock.seuil_alerte: 5
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        bind:
+            string $mailExpediteur: '%app.mail.expediteur%'
+            string $mailExpediteurNom: '%app.mail.expediteur_nom%'
+            float $marcheLatitude: '%app.marche.latitude%'
+            float $marcheLongitude: '%app.marche.longitude%'
+            float $seuilAlerteStock: '%app.stock.seuil_alerte%'
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    # Client HTTP dedie a l'API meteo (framework.http_client.scoped_clients)
+    App\Service\MeteoMarcheService:
+        arguments:
+            $meteoClient: '@meteo.client'
