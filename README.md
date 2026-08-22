@@ -1,7 +1,7 @@
 # TNB — Tarchoun Fruits & Légumes
 
 ![build](https://img.shields.io/badge/build-passing-brightgreen)
-![PHP](https://img.shields.io/badge/PHP-8.2%2B-777bb4)
+![PHP](https://img.shields.io/badge/PHP-8.4%2B-777bb4)
 ![Symfony](https://img.shields.io/badge/Symfony-6.4%20LTS-000000)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0-4479a1)
 ![PHPStan](https://img.shields.io/badge/PHPStan-niveau%206-2a2a2a)
@@ -72,7 +72,7 @@ en cas d'indisponibilité de l'API, l'incident est journalisé et le bloc dispar
 
 | Couche | Technologie |
 |---|---|
-| Langage | PHP 8.2+ |
+| Langage | PHP 8.4+ |
 | Framework | Symfony 6.4 LTS (full-stack) |
 | Vue | Twig + Bootstrap 5 (servi localement, aucun CDN requis) |
 | ORM | Doctrine ORM 3 / DBAL 4 |
@@ -118,7 +118,7 @@ Réinitialisation complète : `docker compose down -v`.
 
 ## Installation locale (sans Docker)
 
-Prérequis : PHP 8.2+ avec `intl`, `pdo_mysql`, `mbstring`, `zip`, `gd` ;
+Prérequis : PHP 8.4+ avec `intl`, `pdo_mysql`, `mbstring`, `zip`, `gd` ;
 Composer 2 ; un serveur MySQL 8.0.
 
 ```bash

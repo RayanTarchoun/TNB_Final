@@ -22,9 +22,6 @@ $finder = (new PhpCsFixer\Finder())
 ;
 
 return (new PhpCsFixer\Config())
-    // Le projet cible PHP 8.2 ; l'outil tourne sur une version plus recente
-    // en local comme en CI, ce qui est sans consequence sur les regles
-    // utilisees ici.
     ->setUnsupportedPhpVersionAllowed(true)
     ->setRiskyAllowed(true)
     ->setRules([

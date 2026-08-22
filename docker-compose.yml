@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # Environnement de developpement TNB (architecture 3-tiers, figure 8.2).
 #
-#   navigateur  ->  conteneur "app" (Apache + PHP 8.2 + Symfony)
+#   navigateur  ->  conteneur "app" (Apache + PHP 8.4 + Symfony)
 #                       -> conteneur "database" (MySQL 8.0), reseau interne
 #
 # Demarrage :  docker compose up -d --build
