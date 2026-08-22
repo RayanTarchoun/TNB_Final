@@ -1,14 +1,18 @@
 # syntax=docker/dockerfile:1
 
 # ---------------------------------------------------------------------------
-# Image applicative TNB : PHP 8.2 + Apache + Symfony
+# Image applicative TNB : PHP 8.4 + Apache + Symfony
 #
 # Le meme Dockerfile sert au developpement et a la production ; seule la cible
 # ("stage") change, ce qui garantit un environnement homogene du poste de dev
 # jusqu'au serveur (CDCF 3.5 "Portabilite").
+#
+# PHP 8.4 est la version minimale exigee par les dependances du projet :
+# doctrine/doctrine-bundle 3.3 et doctrine-migrations-bundle 4.0 requierent
+# ^8.4. Le CDCF 3.4 demande "PHP 8+", cette version le satisfait.
 # ---------------------------------------------------------------------------
 
-FROM php:8.2-apache AS base
+FROM php:8.4-apache AS base
 
 # Dependances systeme necessaires aux extensions PHP
 RUN apt-get update && apt-get install -y --no-install-recommends \
